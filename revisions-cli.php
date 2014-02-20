@@ -63,7 +63,7 @@ class Revisions_CLI extends WP_CLI_Command {
 	 *
 	 * [--width=<width>]
 	 * : Width for the image in pixels, default 150
- 	 *
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions status
@@ -90,7 +90,7 @@ class Revisions_CLI extends WP_CLI_Command {
 	 *
 	 * [<keep>]
 	 * : Number of revisions to keep per post
- 	 *
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions clean
@@ -104,16 +104,16 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		$total = count( $posts );
 
-	    $notify = \WP_CLI\Utils\make_progress_bar( "Cleaning revisions for $total post(s)", $total );
+		$notify = \WP_CLI\Utils\make_progress_bar( "Cleaning revisions for $total post(s)", $total );
 
 
-	    if ( isset( $args[0] ) ) {
-	    	$keep = intval( $args[0] );
-	    } else if ( true === WP_POST_REVISIONS ) {
-	    	WP_CLI::error( 'WP_POST_REVISIONS is set to true (keeps all revisions). Please pass a number.' );
-	    } else {
-	    	$keep = WP_POST_REVISIONS;
-	    }
+		if ( isset( $args[0] ) ) {
+			$keep = intval( $args[0] );
+		} else if ( true === WP_POST_REVISIONS ) {
+			WP_CLI::error( 'WP_POST_REVISIONS is set to true (keeps all revisions). Please pass a number.' );
+		} else {
+			$keep = WP_POST_REVISIONS;
+		}
 
 
 		foreach ( $posts as $post_id ) {
@@ -140,7 +140,7 @@ class Revisions_CLI extends WP_CLI_Command {
 	 *
 	 * [<count>]
 	 * : Number of revisions to generate per post. Default 15
- 	 *
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions generate 10
@@ -154,13 +154,13 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		$total = count( $posts );
 
-	    $notify = \WP_CLI\Utils\make_progress_bar( "Generating revisions for $total post(s)", $total );
+		$notify = \WP_CLI\Utils\make_progress_bar( "Generating revisions for $total post(s)", $total );
 
 
-	    $count = intval( $count );
-	    if ( $count < 1 ) {
-	    	$count = 15;
-	    }
+		$count = intval( $count );
+		if ( $count < 1 ) {
+			$count = 15;
+		}
 
 		foreach ( $posts as $post_id ) {
 			$notify->tick();

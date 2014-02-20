@@ -61,9 +61,6 @@ class Revisions_CLI extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [--width=<width>]
-	 * : Width for the image in pixels, default 150
-	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions status
@@ -167,7 +164,7 @@ class Revisions_CLI extends WP_CLI_Command {
 
 			$p = get_post( $post_id );
 			$content = $p->post_content;
-			for ( $i=0; $i<$count; $i++ ) {
+			for ( $i = 0; $i < $count; $i++ ) {
 				$content .= '|';
 				wp_update_post( array(
 					'ID'           => $post_id,

@@ -153,7 +153,6 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		$notify = \WP_CLI\Utils\make_progress_bar( "Generating revisions for $total post(s)", $total );
 
-
 		$count = intval( $count );
 		if ( $count < 1 ) {
 			$count = 15;

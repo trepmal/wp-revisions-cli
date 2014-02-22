@@ -34,14 +34,16 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * ## OPTIONS
 	 *
 	 * [--post-type=<post-type>]
-	 * : List revisions for given post type(s). Default any
+	 * : List revisions for given post type(s).
 	 *
 	 * [--post-id=<post-id>]
-	 * : List revisions for given post.
+	 * : List revisions for given post. Trumps --post-type.
 	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions list
+	 *     wp revisions list --post-id=2
+	 *     wp revisions list --post-type=post,page
 	 *
 	 * @subcommand list
 	 */
@@ -129,6 +131,8 @@ class Revisions_CLI extends WP_CLI_Command {
 	 *
 	 *     wp revisions clean
 	 *     wp revisions clean 5
+	 *     wp revisions clean --post-id=2
+	 *     wp revisions clean 5 --post-type=post,page
 	 *
 	 */
 	public function clean( $args = array(), $assoc_args = array() ) {
@@ -203,6 +207,8 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions generate 10
+	 *     wp revisions generate --post-id=2
+	 *     wp revisions generate 2 --post-type=post,page
 	 *
 	 */
 	public function generate( $args = array(), $assoc_args = array() ) {

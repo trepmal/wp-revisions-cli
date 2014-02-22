@@ -173,6 +173,9 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [<count>]
 	 * : Number of revisions to generate per post. Default 15
 	 *
+	 * [--post-type=<post-type>]
+	 * : List revisions for given post type(s). Default any
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions generate 10
@@ -182,7 +185,19 @@ class Revisions_CLI extends WP_CLI_Command {
 		list( $count ) = $args;
 
 		global $wpdb;
-		$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type != 'revision' AND post_type != 'auto-draft'" );
+		if ( empty( $assoc_args['post-type'] ) ) {
+			$post_types = $this->supports_revisions();
+		} else {
+			$post_types = explode( ',', $assoc_args['post-type'] );
+		}
+
+		$where = '';
+		foreach( $post_types as $post_type ) {
+			$where .= $wpdb->prepare( ' OR post_type = %s', $post_type );
+		}
+
+		// get all IDs for posts in given post type(s)
+		$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
 
 		$total = count( $posts );
 

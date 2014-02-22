@@ -33,6 +33,9 @@ class Revisions_CLI extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
+	 * [--post-type=<post-type>]
+	 * : List revisions for given post type(s). Default any
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions list
@@ -42,7 +45,24 @@ class Revisions_CLI extends WP_CLI_Command {
 	public function list_( $args = array(), $assoc_args = array() ) {
 
 		global $wpdb;
-		$revs = $wpdb->get_results( "SELECT post_title, post_parent FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC" );
+		if ( empty( $assoc_args['post-type'] ) ) {
+			$revs = $wpdb->get_results( "SELECT post_title, post_parent FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC" );
+		} else {
+			$post_types = explode( ',', $assoc_args['post-type'] );
+
+			$where = '';
+			foreach( $post_types as $post_type ) {
+				$where .= $wpdb->prepare( ' OR post_type = %s', $post_type );
+			}
+
+			// get all IDs for posts in given post type(s)
+			$ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
+
+			$post__in = implode( ',', $ids );
+
+			// get revisions of those IDs
+			$revs = $wpdb->get_results( "SELECT post_title, post_parent FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC" );
+		}
 
 		$total = count( $revs );
 
@@ -88,6 +108,9 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [<keep>]
 	 * : Number of revisions to keep per post
 	 *
+	 * [--post-type=<post-type>]
+	 * : List revisions for given post type(s). Default any
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions clean
@@ -97,7 +120,20 @@ class Revisions_CLI extends WP_CLI_Command {
 	public function clean( $args = array(), $assoc_args = array() ) {
 
 		global $wpdb;
-		$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type != 'revision' AND post_type != 'auto-draft'" );
+
+		if ( empty( $assoc_args['post-type'] ) ) {
+			$post_types = $this->supports_revisions();
+		} else {
+			$post_types = explode( ',', $assoc_args['post-type'] );
+		}
+
+		$where = '';
+		foreach( $post_types as $post_type ) {
+			$where .= $wpdb->prepare( ' OR post_type = %s', $post_type );
+		}
+
+		// get all IDs for posts in given post type(s)
+		$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
 
 		$total = count( $posts );
 
@@ -111,7 +147,6 @@ class Revisions_CLI extends WP_CLI_Command {
 		} else {
 			$keep = WP_POST_REVISIONS;
 		}
-
 
 		foreach ( $posts as $post_id ) {
 
@@ -173,6 +208,27 @@ class Revisions_CLI extends WP_CLI_Command {
 		}
 
 		$notify->finish();
+
+	}
+
+	/**
+	 * Supports Revisions
+	 *
+	 * Get list of post types that support revisions
+	 *
+	 * @return array
+	 */
+	private function supports_revisions() {
+
+		$supports_revisions = array();
+
+		foreach( get_post_types() as $post_type ) {
+			if ( post_type_supports( $post_type, 'revisions' ) ) {
+				$supports_revisions[] = $post_type;
+			}
+		}
+
+		return $supports_revisions;
 
 	}
 

@@ -36,6 +36,9 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [--post-type=<post-type>]
 	 * : List revisions for given post type(s). Default any
 	 *
+	 * [--post-id=<post-id>]
+	 * : List revisions for given post.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions list
@@ -45,13 +48,16 @@ class Revisions_CLI extends WP_CLI_Command {
 	public function list_( $args = array(), $assoc_args = array() ) {
 
 		global $wpdb;
-		if ( empty( $assoc_args['post-type'] ) ) {
-			$revs = $wpdb->get_results( "SELECT post_title, post_parent FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC" );
-		} else {
+		if ( ! empty( $assoc_args['post-id'] ) ) {
+
+			$revs = $wpdb->get_results( $wpdb->prepare( "SELECT post_title, post_parent FROM $wpdb->posts WHERE post_parent = %d", $assoc_args['post-id'] ) );
+
+		} else if ( ! empty( $assoc_args['post-type'] ) ) {
+
 			$post_types = explode( ',', $assoc_args['post-type'] );
 
 			$where = '';
-			foreach( $post_types as $post_type ) {
+			foreach ( $post_types as $post_type ) {
 				$where .= $wpdb->prepare( ' OR post_type = %s', $post_type );
 			}
 
@@ -62,6 +68,11 @@ class Revisions_CLI extends WP_CLI_Command {
 
 			// get revisions of those IDs
 			$revs = $wpdb->get_results( "SELECT post_title, post_parent FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC" );
+
+		} else {
+
+			$revs = $wpdb->get_results( "SELECT post_title, post_parent FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC" );
+
 		}
 
 		$total = count( $revs );
@@ -111,6 +122,9 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [--post-type=<post-type>]
 	 * : List revisions for given post type(s). Default any
 	 *
+	 * [--post-id=<post-id>]
+	 * : List revisions for given post.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions clean
@@ -121,24 +135,31 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		global $wpdb;
 
-		if ( empty( $assoc_args['post-type'] ) ) {
-			$post_types = $this->supports_revisions();
+		if ( ! empty( $assoc_args['post-id'] ) ) {
+
+			$posts = array( $assoc_args['post-id'] );
+
 		} else {
-			$post_types = explode( ',', $assoc_args['post-type'] );
-		}
 
-		$where = '';
-		foreach( $post_types as $post_type ) {
-			$where .= $wpdb->prepare( ' OR post_type = %s', $post_type );
-		}
+			if ( empty( $assoc_args['post-type'] ) ) {
+				$post_types = $this->supports_revisions();
+			} else {
+				$post_types = explode( ',', $assoc_args['post-type'] );
+			}
 
-		// get all IDs for posts in given post type(s)
-		$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
+			$where = '';
+			foreach ( $post_types as $post_type ) {
+				$where .= $wpdb->prepare( ' OR post_type = %s', $post_type );
+			}
+
+			// get all IDs for posts in given post type(s)
+			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
+
+		}
 
 		$total = count( $posts );
 
 		$notify = \WP_CLI\Utils\make_progress_bar( "Cleaning revisions for $total post(s)", $total );
-
 
 		if ( isset( $args[0] ) ) {
 			$keep = intval( $args[0] );
@@ -176,37 +197,45 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [--post-type=<post-type>]
 	 * : List revisions for given post type(s). Default any
 	 *
+	 * [--post-id=<post-id>]
+	 * : List revisions for given post.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions generate 10
 	 *
 	 */
 	public function generate( $args = array(), $assoc_args = array() ) {
-		list( $count ) = $args;
 
 		global $wpdb;
-		if ( empty( $assoc_args['post-type'] ) ) {
-			$post_types = $this->supports_revisions();
+
+		if ( ! empty( $assoc_args['post-id'] ) ) {
+
+			$posts = array( $assoc_args['post-id'] );
+
 		} else {
-			$post_types = explode( ',', $assoc_args['post-type'] );
-		}
 
-		$where = '';
-		foreach( $post_types as $post_type ) {
-			$where .= $wpdb->prepare( ' OR post_type = %s', $post_type );
-		}
+			if ( empty( $assoc_args['post-type'] ) ) {
+				$post_types = $this->supports_revisions();
+			} else {
+				$post_types = explode( ',', $assoc_args['post-type'] );
+			}
 
-		// get all IDs for posts in given post type(s)
-		$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
+			$where = '';
+			foreach ( $post_types as $post_type ) {
+				$where .= $wpdb->prepare( ' OR post_type = %s', $post_type );
+			}
+
+			// get all IDs for posts in given post type(s)
+			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
+
+		}
 
 		$total = count( $posts );
 
 		$notify = \WP_CLI\Utils\make_progress_bar( "Generating revisions for $total post(s)", $total );
 
-		$count = intval( $count );
-		if ( $count < 1 ) {
-			$count = 15;
-		}
+		$count = isset( $args[0] ) ? intval( $args[0] ) : 15;
 
 		foreach ( $posts as $post_id ) {
 			$notify->tick();
@@ -237,7 +266,7 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		$supports_revisions = array();
 
-		foreach( get_post_types() as $post_type ) {
+		foreach ( get_post_types() as $post_type ) {
 			if ( post_type_supports( $post_type, 'revisions' ) ) {
 				$supports_revisions[] = $post_type;
 			}

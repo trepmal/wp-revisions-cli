@@ -18,13 +18,13 @@ class Revisions_CLI extends WP_CLI_Command {
 	public function dump( $args = array(), $assoc_args = array() ) {
 
 		global $wpdb;
-		$revs = $wpdb->get_col( "SELECT post_title FROM $wpdb->posts WHERE post_type = 'revision'");
+		$revs = $wpdb->get_col( "SELECT post_title FROM $wpdb->posts WHERE post_type = 'revision'" );
 
 		WP_CLI::confirm( sprintf( 'Remove all %d revisions?', count( $revs ) ) );
 
-		$wpdb->query( "DELETE FROM $wpdb->posts WHERE post_type = 'revision'");
+		$wpdb->query( "DELETE FROM $wpdb->posts WHERE post_type = 'revision'" );
 
-		WP_CLI::success( "Done.");
+		WP_CLI::success( "Done." );
 
 	}
 
@@ -42,7 +42,7 @@ class Revisions_CLI extends WP_CLI_Command {
 	public function list_( $args = array(), $assoc_args = array() ) {
 
 		global $wpdb;
-		$revs = $wpdb->get_results( "SELECT post_title, post_parent FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC");
+		$revs = $wpdb->get_results( "SELECT post_title, post_parent FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC" );
 
 		$total = count( $revs );
 
@@ -52,7 +52,7 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		$formatter = new \WP_CLI\Formatter( $assoc_args, array('post_title', 'post_parent'), 'revisions' );
 		$formatter->display_items( $revs );
-		WP_CLI::success( "$total revisions.");
+		WP_CLI::success( "$total revisions." );
 
 	}
 
@@ -97,7 +97,7 @@ class Revisions_CLI extends WP_CLI_Command {
 	public function clean( $args = array(), $assoc_args = array() ) {
 
 		global $wpdb;
-		$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type != 'revision' AND post_type != 'auto-draft'");
+		$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type != 'revision' AND post_type != 'auto-draft'" );
 
 		$total = count( $posts );
 
@@ -147,7 +147,7 @@ class Revisions_CLI extends WP_CLI_Command {
 		list( $count ) = $args;
 
 		global $wpdb;
-		$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type != 'revision' AND post_type != 'auto-draft'");
+		$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE post_type != 'revision' AND post_type != 'auto-draft'" );
 
 		$total = count( $posts );
 

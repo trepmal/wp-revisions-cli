@@ -20,14 +20,14 @@ class Revisions_CLI extends WP_CLI_Command {
 	public function dump( $args = array(), $assoc_args = array() ) {
 
 		global $wpdb;
-		$revs = $wpdb->get_col( "SELECT post_title FROM $wpdb->posts WHERE post_type = 'revision'" );
+		$revs = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->posts WHERE post_type = 'revision'" );
 
-		if ( count( $revs ) < 1 ) {
+		if ( $revs < 1 ) {
 			WP_CLI::success( 'No revisions.' );
 			return;
 		}
 
-		WP_CLI::confirm( sprintf( 'Remove all %d revisions?', count( $revs ) ) );
+		WP_CLI::confirm( sprintf( 'Remove all %d revisions?', $revs ) );
 
 		if ( isset( $assoc_args['hard'] ) ) {
 			WP_CLI::run_command( array( 'revisions', 'clean', -1 ) );

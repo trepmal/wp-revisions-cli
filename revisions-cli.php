@@ -45,10 +45,10 @@ class Revisions_CLI extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [--post_type=<post_type>]
+	 * [--post-type=<post-type>]
 	 * : List revisions for given post type(s).
 	 *
-	 * [--post_id=<post_id>]
+	 * [--post-id=<post-id>]
 	 * : List revisions for given post. Trumps --post_type.
 	 *
 	 * ## EXAMPLES
@@ -133,10 +133,10 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [<keep>]
 	 * : Number of revisions to keep per post
 	 *
-	 * [--post_type=<post_type>]
+	 * [--post-type=<post-type>]
 	 * : List revisions for given post type(s). Default any
 	 *
-	 * [--post_id=<post_id>]
+	 * [--post-id=<post-id>]
 	 * : List revisions for given post.
 	 *
 	 * ## EXAMPLES
@@ -211,10 +211,10 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [<count>]
 	 * : Number of revisions to generate per post. Default 15
 	 *
-	 * [--post_type=<post_type>]
+	 * [--post-type=<post-type>]
 	 * : List revisions for given post type(s). Default any
 	 *
-	 * [--post_id=<post_id>]
+	 * [--post-id=<post-id>]
 	 * : List revisions for given post.
 	 *
 	 * ## EXAMPLES
@@ -262,7 +262,7 @@ class Revisions_CLI extends WP_CLI_Command {
 			$p = get_post( $post_id );
 			$content = $p->post_content;
 			for ( $i = 0; $i < $count; $i++ ) {
-				$content .= '|';
+				$content .= '&nbsp;';
 				wp_update_post( array(
 					'ID'           => $post_id,
 					'post_content' => $content

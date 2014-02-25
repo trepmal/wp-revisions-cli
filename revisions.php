@@ -3,7 +3,7 @@
  * Plugin Name: Revisions CLI
  * Plugin URI: trepmal.com
  * Description:
- * Version:
+ * Version: 99
  * Author: Kailey Lampert
  * Author URI: kaileylampert.com
  * License: GPLv2 or later

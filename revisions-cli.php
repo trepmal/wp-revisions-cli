@@ -24,7 +24,7 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		$wpdb->query( "DELETE FROM $wpdb->posts WHERE post_type = 'revision'" );
 
-		WP_CLI::success( "Done." );
+		WP_CLI::success( 'Finished removing all revisons.' );
 
 	}
 
@@ -52,7 +52,7 @@ class Revisions_CLI extends WP_CLI_Command {
 		global $wpdb;
 		if ( ! empty( $assoc_args['post-id'] ) ) {
 
-			$revs = $wpdb->get_results( $wpdb->prepare( "SELECT post_title, post_parent FROM $wpdb->posts WHERE post_parent = %d", $assoc_args['post-id'] ) );
+			$revs = $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_title, post_parent FROM $wpdb->posts WHERE post_parent = %d", $assoc_args['post-id'] ) );
 
 		} else if ( ! empty( $assoc_args['post-type'] ) ) {
 
@@ -69,11 +69,11 @@ class Revisions_CLI extends WP_CLI_Command {
 			$post__in = implode( ',', $ids );
 
 			// get revisions of those IDs
-			$revs = $wpdb->get_results( "SELECT post_title, post_parent FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC" );
+			$revs = $wpdb->get_results( "SELECT ID, post_title, post_parent FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC" );
 
 		} else {
 
-			$revs = $wpdb->get_results( "SELECT post_title, post_parent FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC" );
+			$revs = $wpdb->get_results( "SELECT ID, post_title, post_parent FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC" );
 
 		}
 
@@ -83,9 +83,9 @@ class Revisions_CLI extends WP_CLI_Command {
 			WP_CLI::confirm( sprintf( 'List all %d revisions?', $total ) );
 		}
 
-		$formatter = new \WP_CLI\Formatter( $assoc_args, array('post_title', 'post_parent'), 'revisions' );
+		$formatter = new \WP_CLI\Formatter( $assoc_args, array('post_title', 'post_parent', 'ID' ), 'revisions' );
 		$formatter->display_items( $revs );
-		WP_CLI::success( "$total revisions." );
+		WP_CLI::success( sprintf( '%d revisions.', $total ) );
 
 	}
 
@@ -163,7 +163,7 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		$total = count( $posts );
 
-		$notify = \WP_CLI\Utils\make_progress_bar( "Cleaning revisions for $total post(s)", $total );
+		$notify = \WP_CLI\Utils\make_progress_bar( sprintf( 'Cleaning revisions for %d post(s)', $total ), $total );
 
 		if ( isset( $args[0] ) ) {
 			$keep = intval( $args[0] );
@@ -175,9 +175,7 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		foreach ( $posts as $post_id ) {
 
-			wp_save_post_revision( $post_id );
-			$revs = wp_get_post_revisions( $post_id );
-			$r = wp_list_pluck( $revs, 'post_name' );
+			$r = wp_list_pluck( wp_get_post_revisions( $post_id ), 'post_name' );
 			$delete = array_slice( $r, $keep, null, true );
 			foreach ( $delete as $id => $name ) {
 				wp_delete_post_revision( $id );
@@ -187,6 +185,7 @@ class Revisions_CLI extends WP_CLI_Command {
 		}
 
 		$notify->finish();
+		WP_CLI::success( 'Finished removing old revisons.' );
 
 	}
 
@@ -239,7 +238,7 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		$total = count( $posts );
 
-		$notify = \WP_CLI\Utils\make_progress_bar( "Generating revisions for $total post(s)", $total );
+		$notify = \WP_CLI\Utils\make_progress_bar( sprintf( 'Generating revisions for %d post(s)', $total ), $total );
 
 		$count = isset( $args[0] ) ? intval( $args[0] ) : 15;
 
@@ -258,6 +257,7 @@ class Revisions_CLI extends WP_CLI_Command {
 		}
 
 		$notify->finish();
+		WP_CLI::success( 'Finished generating revisons.' );
 
 	}
 

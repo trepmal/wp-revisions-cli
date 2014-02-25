@@ -1,5 +1,9 @@
 <?php
-
+function convert($size)
+ {
+    $unit=array('b','kb','mb','gb','tb','pb');
+    return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
+ }
 /**
  * Manage Revisions
  */
@@ -10,12 +14,19 @@ class Revisions_CLI extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
+	 * [--hard]
+	 * : Hard delete. Slower, uses wp_delete_post_revision(). Alias to wp revisions clean -1
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions dump
 	 *
 	 */
 	public function dump( $args = array(), $assoc_args = array() ) {
+		if ( isset( $assoc_args['hard'] ) ) {
+			WP_CLI::run_command( array( 'revisions', 'clean', -1 ) );
+			return;
+		}
 
 		global $wpdb;
 		$revs = $wpdb->get_col( "SELECT post_title FROM $wpdb->posts WHERE post_type = 'revision'" );
@@ -175,8 +186,10 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		foreach ( $posts as $post_id ) {
 
-			$r = wp_list_pluck( wp_get_post_revisions( $post_id ), 'post_name' );
-			$delete = array_slice( $r, $keep, null, true );
+			$delete = wp_list_pluck( wp_get_post_revisions( $post_id ), 'post_name' );
+			if ( $keep > 0 ) {
+				$delete = array_slice( $delete, $keep, null, true );
+			}
 			foreach ( $delete as $id => $name ) {
 				wp_delete_post_revision( $id );
 			}

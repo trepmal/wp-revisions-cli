@@ -45,30 +45,30 @@ class Revisions_CLI extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [--post-type=<post-type>]
+	 * [--post_type=<post_type>]
 	 * : List revisions for given post type(s).
 	 *
-	 * [--post-id=<post-id>]
-	 * : List revisions for given post. Trumps --post-type.
+	 * [--post_id=<post_id>]
+	 * : List revisions for given post. Trumps --post_type.
 	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions list
-	 *     wp revisions list --post-id=2
-	 *     wp revisions list --post-type=post,page
+	 *     wp revisions list --post_id=2
+	 *     wp revisions list --post_type=post,page
 	 *
 	 * @subcommand list
 	 */
 	public function list_( $args = array(), $assoc_args = array() ) {
 
 		global $wpdb;
-		if ( ! empty( $assoc_args['post-id'] ) ) {
+		if ( ! empty( $assoc_args['post_id'] ) ) {
 
-			$revs = $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_title, post_parent FROM $wpdb->posts WHERE post_parent = %d", $assoc_args['post-id'] ) );
+			$revs = $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_title, post_parent FROM $wpdb->posts WHERE post_parent = %d", $assoc_args['post_id'] ) );
 
-		} else if ( ! empty( $assoc_args['post-type'] ) ) {
+		} else if ( ! empty( $assoc_args['post_type'] ) ) {
 
-			$post_types = explode( ',', $assoc_args['post-type'] );
+			$post_types = explode( ',', $assoc_args['post_type'] );
 
 			$where = '';
 			foreach ( $post_types as $post_type ) {
@@ -133,34 +133,34 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [<keep>]
 	 * : Number of revisions to keep per post
 	 *
-	 * [--post-type=<post-type>]
+	 * [--post_type=<post_type>]
 	 * : List revisions for given post type(s). Default any
 	 *
-	 * [--post-id=<post-id>]
+	 * [--post_id=<post_id>]
 	 * : List revisions for given post.
 	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions clean
 	 *     wp revisions clean 5
-	 *     wp revisions clean --post-id=2
-	 *     wp revisions clean 5 --post-type=post,page
+	 *     wp revisions clean --post_id=2
+	 *     wp revisions clean 5 --post_type=post,page
 	 *
 	 */
 	public function clean( $args = array(), $assoc_args = array() ) {
 
 		global $wpdb;
 
-		if ( ! empty( $assoc_args['post-id'] ) ) {
+		if ( ! empty( $assoc_args['post_id'] ) ) {
 
-			$posts = array( $assoc_args['post-id'] );
+			$posts = array( $assoc_args['post_id'] );
 
 		} else {
 
-			if ( empty( $assoc_args['post-type'] ) ) {
+			if ( empty( $assoc_args['post_type'] ) ) {
 				$post_types = $this->supports_revisions();
 			} else {
-				$post_types = explode( ',', $assoc_args['post-type'] );
+				$post_types = explode( ',', $assoc_args['post_type'] );
 			}
 
 			$where = '';
@@ -211,33 +211,33 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [<count>]
 	 * : Number of revisions to generate per post. Default 15
 	 *
-	 * [--post-type=<post-type>]
+	 * [--post_type=<post_type>]
 	 * : List revisions for given post type(s). Default any
 	 *
-	 * [--post-id=<post-id>]
+	 * [--post_id=<post_id>]
 	 * : List revisions for given post.
 	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions generate 10
-	 *     wp revisions generate --post-id=2
-	 *     wp revisions generate 2 --post-type=post,page
+	 *     wp revisions generate --post_id=2
+	 *     wp revisions generate 2 --post_type=post,page
 	 *
 	 */
 	public function generate( $args = array(), $assoc_args = array() ) {
 
 		global $wpdb;
 
-		if ( ! empty( $assoc_args['post-id'] ) ) {
+		if ( ! empty( $assoc_args['post_id'] ) ) {
 
-			$posts = array( $assoc_args['post-id'] );
+			$posts = array( $assoc_args['post_id'] );
 
 		} else {
 
-			if ( empty( $assoc_args['post-type'] ) ) {
+			if ( empty( $assoc_args['post_type'] ) ) {
 				$post_types = $this->supports_revisions();
 			} else {
-				$post_types = explode( ',', $assoc_args['post-type'] );
+				$post_types = explode( ',', $assoc_args['post_type'] );
 			}
 
 			$where = '';

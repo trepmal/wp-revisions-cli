@@ -5,7 +5,7 @@
 class Revisions_CLI extends WP_CLI_Command {
 
 	/**
-	 * Dump all revisions
+	 * Delete all revisions
 	 *
 	 * ## OPTIONS
 	 *
@@ -126,18 +126,18 @@ class Revisions_CLI extends WP_CLI_Command {
 	}
 
 	/**
-	 * Clean out old revisions
+	 * Delete old revisions
 	 *
 	 * ## OPTIONS
 	 *
 	 * [<keep>]
-	 * : Number of revisions to keep per post
+	 * : Number of revisions to keep per post. Defaults to WP_POST_REVISIONS if it is an integer
 	 *
 	 * [--post_type=<post-type>]
-	 * : List revisions for given post type(s). Default any
+	 * : Clean revisions for given post type(s). Default any
 	 *
 	 * [--post_id=<post-id>]
-	 * : List revisions for given post.
+	 * : Clean revisions for given post.
 	 *
 	 * ## EXAMPLES
 	 *

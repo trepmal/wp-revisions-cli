@@ -45,10 +45,10 @@ class Revisions_CLI extends WP_CLI_Command {
 	 *
 	 * ## OPTIONS
 	 *
-	 * [--post-type=<post-type>]
+	 * [--post_type=<post-type>]
 	 * : List revisions for given post type(s).
 	 *
-	 * [--post-id=<post-id>]
+	 * [--post_id=<post-id>]
 	 * : List revisions for given post. Trumps --post_type.
 	 *
 	 * ## EXAMPLES
@@ -133,10 +133,10 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [<keep>]
 	 * : Number of revisions to keep per post
 	 *
-	 * [--post-type=<post-type>]
+	 * [--post_type=<post-type>]
 	 * : List revisions for given post type(s). Default any
 	 *
-	 * [--post-id=<post-id>]
+	 * [--post_id=<post-id>]
 	 * : List revisions for given post.
 	 *
 	 * ## EXAMPLES
@@ -211,11 +211,11 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [<count>]
 	 * : Number of revisions to generate per post. Default 15
 	 *
-	 * [--post-type=<post-type>]
-	 * : List revisions for given post type(s). Default any
+	 * [--post_type=<post-type>]
+	 * : Generate revisions for given post type(s). Default any
 	 *
-	 * [--post-id=<post-id>]
-	 * : List revisions for given post.
+	 * [--post_id=<post-id>]
+	 * : Generate revisions for given post.
 	 *
 	 * ## EXAMPLES
 	 *

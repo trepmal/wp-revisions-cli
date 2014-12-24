@@ -1,6 +1,6 @@
 <?php
 /**
- * Manage Revisions
+ * Manage revisions
  */
 class Revisions_CLI extends WP_CLI_Command {
 
@@ -36,7 +36,7 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		$wpdb->query( "DELETE FROM $wpdb->posts WHERE post_type = 'revision'" );
 
-		WP_CLI::success( 'Finished removing all revisons.' );
+		WP_CLI::success( 'Finished removing all revisions.' );
 
 	}
 
@@ -139,6 +139,9 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [--post_id=<post-id>]
 	 * : Clean revisions for given post.
 	 *
+	 * [--hard]
+	 * : Hard delete. Slower, uses wp_delete_post_revision(). Alias to wp revisions clean -1
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions clean
@@ -185,21 +188,50 @@ class Revisions_CLI extends WP_CLI_Command {
 			$keep = WP_POST_REVISIONS;
 		}
 
+		$total_deleted = 0;
+
 		foreach ( $posts as $post_id ) {
 
-			$delete = wp_list_pluck( wp_get_post_revisions( $post_id ), 'post_name' );
-			if ( $keep > 0 ) {
-				$delete = array_slice( $delete, $keep, null, true );
+ 			$revisions = get_children( array(
+ 				'order' => 'DESC', 'orderby' => 'date ID', 'post_parent' => $post_id, 'post_type' => 'revision', 'post_status' => 'inherit',
+ 				// trust me on these
+ 				'update_post_meta_cache' => false,
+ 				'update_post_term_cache' => false,
+ 				'fields' => 'ids'
+ 			) );
+
+ 			if ( ! $revisions ) {
+ 				$notify->tick();
+ 				continue;
+ 			}
+
+			$count = count( $revisions );
+
+			if ( $count > $keep ) {
+				if ( $keep > 0 ) {
+					$revisions = array_slice( $revisions, $keep, null, true );
+				}
+
+				$total_deleted += count( $revisions );
+
+				if ( isset( $assoc_args['hard'] ) ) {
+					foreach ( $revisions as $id ) {
+						wp_delete_post_revision( $id );
+					}
+				} else {
+					$delete_ids = implode(',', $revisions);
+					$wpdb->query( "DELETE FROM $wpdb->posts WHERE ID IN ($delete_ids)");
+				}
 			}
-			foreach ( $delete as $id => $name ) {
-				wp_delete_post_revision( $id );
-			}
+
+			$wpdb->flush();
 
 			$notify->tick();
 		}
 
 		$notify->finish();
-		WP_CLI::success( 'Finished removing old revisons.' );
+
+		WP_CLI::success( sprintf( 'Finished removing %d old revisions.', $total_deleted ) );
 
 	}
 
@@ -271,7 +303,7 @@ class Revisions_CLI extends WP_CLI_Command {
 		}
 
 		$notify->finish();
-		WP_CLI::success( 'Finished generating revisons.' );
+		WP_CLI::success( 'Finished generating revisions.' );
 
 	}
 
@@ -297,5 +329,4 @@ class Revisions_CLI extends WP_CLI_Command {
 	}
 
 }
-
 WP_CLI::add_command( 'revisions', 'Revisions_CLI' );

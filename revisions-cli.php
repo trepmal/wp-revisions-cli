@@ -212,28 +212,18 @@ class Revisions_CLI extends WP_CLI_Command {
 		$total_deleted = 0;
 
 		foreach ( $posts as $post_id ) {
-			print "BALBABAL $post_id \n";
 
- 			//$revisions = get_children( array(
- 			//	'order' => 'DESC',
-			//	'orderby' => 'date ID',
-			//	'post_parent' => $post_id,
-			//	'post_type' => 'revision',
-			//	'post_status' => 'inherit',
- 			//	// trust me on these
- 			//	'update_post_meta_cache' => false,
- 			//	'update_post_term_cache' => false,
- 			//	'fields' => 'ids'
- 			//) );
-
-			// TODO delete meta for revision?
-
-			$args = array();
-			$revisions = wp_get_post_revisions( intval( $post_id ) );
-			print_r( $revisions );
-
-			print "AFTER XY $post_id \n";
-			return;
+ 			$revisions = get_children( array(
+ 				'order' => 'DESC',
+				'orderby' => 'date ID',
+				'post_parent' => $post_id,
+				'post_type' => 'revision',
+				'post_status' => 'inherit',
+ 				// trust me on these
+ 				'update_post_meta_cache' => false,
+ 				'update_post_term_cache' => false,
+ 				'fields' => 'ids'
+ 			) );
 
  			if ( ! $revisions ) {
  				$notify->tick();
@@ -271,7 +261,7 @@ class Revisions_CLI extends WP_CLI_Command {
 		$notify->finish();
 
 		if ( ! empty( $assoc_args['dry-run'] ) ) {
-			WP_CLI::success( sprintf( 'Finished removing old revisions for %d post(s). [DRY RUN: not removed]', $total ) );
+			WP_CLI::success( sprintf( 'Finished removing %d old revisions. [DRY RUN: not removed]', $total_deleted ) );
 		} else {
 			WP_CLI::success( sprintf( 'Finished removing %d old revisions.', $total_deleted ) );
 		}

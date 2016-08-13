@@ -1,0 +1,15 @@
+{
+	"name": "trepmal/wp-revisions-cli",
+	"description": "Manage revisions",
+	"homepage": "https://github.com/trepmal/wp-revisions-cli",
+	"license": "MIT",
+	"require": {
+		"php": ">=5.3"
+	},
+	"autoload": {
+		"files": [ "revisions-cli.php" ]
+	},
+	"require-dev": {
+		"behat/behat": "~2.5"
+	}
+}

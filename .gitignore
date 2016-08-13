@@ -1,0 +1,7 @@
+.DS_Store
+composer.lock
+wp-cli.local.yml
+node_modules/
+vendor/
+composer.phar
+installer

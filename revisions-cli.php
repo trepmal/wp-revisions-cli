@@ -15,6 +15,9 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [--hard]
 	 * : Hard delete. Slower, uses wp_delete_post_revision(). Alias to wp revisions clean -1
 	 *
+	 * [--yes]
+	 * : Answer yes to the confirmation message.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions dump
@@ -30,7 +33,7 @@ class Revisions_CLI extends WP_CLI_Command {
 			return;
 		}
 
-		WP_CLI::confirm( sprintf( 'Remove all %d revisions?', $revs ) );
+		WP_CLI::confirm( sprintf( 'Remove all %d revisions?', $revs ), $assoc_args );
 
 		if ( isset( $assoc_args['hard'] ) ) {
 			WP_CLI::run_command( array( 'revisions', 'clean', -1 ) );
@@ -53,6 +56,9 @@ class Revisions_CLI extends WP_CLI_Command {
 	 *
 	 * [--post_id=<post-id>]
 	 * : List revisions for given post. Trumps --post_type.
+	 *
+	 * [--yes]
+	 * : Answer yes to the confirmation message.
 	 *
 	 * ## EXAMPLES
 	 *
@@ -95,10 +101,10 @@ class Revisions_CLI extends WP_CLI_Command {
 		$total = count( $revs );
 
 		if ( $total > 100 ) {
-			WP_CLI::confirm( sprintf( 'List all %d revisions?', $total ) );
+			WP_CLI::confirm( sprintf( 'List all %d revisions?', $total ), $assoc_args );
 		}
 
-		$formatter = new \WP_CLI\Formatter( $assoc_args, array('post_title', 'post_parent', 'ID' ), 'revisions' );
+		$formatter = new \WP_CLI\Formatter( $assoc_args, array( 'ID', 'post_parent', 'post_title' ), 'revisions' );
 		$formatter->display_items( $revs );
 		WP_CLI::success( sprintf( '%d revisions.', $total ) );
 

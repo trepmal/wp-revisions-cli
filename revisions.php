@@ -1,13 +1,12 @@
 <?php
 /*
  * Plugin Name: Revisions CLI
- * Plugin URI: trepmal.com
- * Description:
- * Version: 99
+ * Plugin URI: https://github.com/trepmal/wp-revisions-cli/
+ * Description: Plugin wrapper for WP CLI command, WP Revisions CLI
+ * Version: 0.1.0
  * Author: Kailey Lampert
  * Author URI: kaileylampert.com
- * License: GPLv2 or later
- * License URI: http://www.gnu.org/licenses/gpl-2.0.html
+ * License: MIT
  * TextDomain:
  * DomainPath:
  * Network:

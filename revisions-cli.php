@@ -36,7 +36,7 @@ class Revisions_CLI extends WP_CLI_Command {
 		WP_CLI::confirm( sprintf( 'Remove all %d revisions?', $revs ), $assoc_args );
 
 		if ( isset( $assoc_args['hard'] ) ) {
-			WP_CLI::run_command( array( 'revisions', 'clean', -1 ) );
+			WP_CLI::run_command( array( 'revisions', 'clean', -1 ), array( 'hard' => '' ) );
 			return;
 		}
 

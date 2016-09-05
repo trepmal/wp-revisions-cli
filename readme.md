@@ -4,16 +4,16 @@ WP CLI command for managing revisions
 
 ## Installation
 
-### as standard plugin
+### as wp-cli package (recommended)
+
+```
+wp package install trepmal/wp-revisions-cli
+```
+
+### as standard plugin (for older installations of wp-cli)
 
 ```
 wp plugin install https://github.com/trepmal/wp-revisions-cli/archive/master.zip --activate
-```
-
-### as wp-cli package (coming soooooooon, hopefully)
-
-```
-# wp package install trepmal/wp-revisions-cli
 ```
 
 ## Usage

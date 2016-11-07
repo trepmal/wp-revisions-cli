@@ -1,6 +1,7 @@
 {
 	"name": "trepmal/wp-revisions-cli",
 	"description": "Manage revisions",
+	"type": "wp-cli-package",
 	"homepage": "https://github.com/trepmal/wp-revisions-cli",
 	"license": "MIT",
 	"require": {

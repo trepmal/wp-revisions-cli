@@ -1,4 +1,4 @@
-# Revisions CLI
+# Revisions CLI [![Build Status](https://travis-ci.org/trepmal/wp-revisions-cli.svg?branch=master)](https://travis-ci.org/trepmal/wp-revisions-cli)
 
 WP CLI command for managing revisions
 

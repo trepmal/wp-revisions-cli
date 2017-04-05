@@ -303,7 +303,11 @@ class Revisions_CLI extends WP_CLI_Command {
 			$p = get_post( $post_id );
 			$content = $p->post_content;
 			for ( $i = 0; $i < $count; $i++ ) {
-				$content .= '&nbsp;';
+				if ( substr($content,-6) == '&nbsp;' ) {
+					$content = substr($content, 0, -6);
+				} else {
+					content .= '&nbsp;';
+				}
 				wp_update_post( array(
 					'ID'           => $post_id,
 					'post_content' => $content

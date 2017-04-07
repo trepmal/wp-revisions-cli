@@ -191,9 +191,11 @@ class Revisions_CLI extends WP_CLI_Command {
 			}
 
 			$where = '';
+			$post_type_where = array();
 			foreach ( $post_types as $post_type ) {
-				$where .= $wpdb->prepare( ' OR post_type = %s', $post_type );
+				$post_type_where[] = $wpdb->prepare( 'post_type = %s', $post_type );
 			}
+			$where = ' AND (' . implode( ' OR ', $post_type_where ) . ')';
 
 			if ( isset( $assoc_args['after-date'] ) && isset( $assoc_args['before-date'] ) ) {
 				$where .= $wpdb->prepare( ' AND (post_date < %s AND post_date > %s)', $assoc_args['before-date'], $assoc_args['after-date'] );
@@ -204,7 +206,7 @@ class Revisions_CLI extends WP_CLI_Command {
 			}
 
 			// get all IDs for posts in given post type(s).
-			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
+			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=1 {$where}" );
 
 		}
 

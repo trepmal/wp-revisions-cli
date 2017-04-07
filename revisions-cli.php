@@ -148,13 +148,13 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * : Number of revisions to keep per post. Defaults to WP_POST_REVISIONS if it is an integer
 	 *
 	 * [--post_type=<post-type>]
-	 * : Clean revisions for given post type(s). Default any
+	 * : Clean revisions for given post type(s). Default: any
 	 *
-	 * [--after-date=<date>]
-	 * : Clean revisions published on or after this date. Use YYYY-MM-DD.
+	 * [--after-date=<yyyy-mm-dd>]
+	 * : Clean revisions published on or after this date. Default: none.
 	 *
-	 * [--before-date=<date>]
-	 * : Clean revisions published on or before this date. Use YYYY-MM-DD.
+	 * [--before-date=<yyyy-mm-dd>]
+	 * : Clean revisions published on or before this date. Default: none.
 	 *
 	 * [--post_id=<post-id>]
 	 * : Clean revisions for given post.

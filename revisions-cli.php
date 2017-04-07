@@ -1,6 +1,13 @@
 <?php
+/**
+ * Revisions CLI
+ *
+ * @package trepmal/wp-revisions-cli
+ */
 
-if ( !defined( 'WP_CLI' ) ) return;
+if ( ! defined( 'WP_CLI' ) ) {
+	return;
+}
 
 /**
  * Manage revisions
@@ -21,7 +28,6 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions dump
-	 *
 	 */
 	public function dump( $args = array(), $assoc_args = array() ) {
 
@@ -84,12 +90,12 @@ class Revisions_CLI extends WP_CLI_Command {
 				$where .= $wpdb->prepare( ' OR post_type = %s', $post_type );
 			}
 
-			// get all IDs for posts in given post type(s)
+			// get all IDs for posts in given post type(s).
 			$ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
 
 			$post__in = implode( ',', $ids );
 
-			// get revisions of those IDs
+			// get revisions of those IDs.
 			$revs = $wpdb->get_results( "SELECT ID, post_title, post_parent FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC" );
 
 		} else {
@@ -118,12 +124,11 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions status
-	 *
 	 */
 	public function status( $args = array(), $assoc_args = array() ) {
 
 		if ( defined( 'WP_POST_REVISIONS' ) ) {
-			if ( WP_POST_REVISIONS === true ) {
+			if ( true === WP_POST_REVISIONS ) {
 				WP_CLI::success( 'WP_POST_REVISIONS is true. Keeps all revisions.' );
 			} else {
 				WP_CLI::success( sprintf( 'Keeping the last %d revisions', WP_POST_REVISIONS ) );
@@ -168,7 +173,6 @@ class Revisions_CLI extends WP_CLI_Command {
 	 *     wp revisions clean 5 --post_type=post,page
 	 *     wp revisions clean --after-date=2015-11-01 --before-date=2015-12-30
 	 *     wp revisions clean --after-date=2015-11-01 --before-date=2015-12-30 --dry-run
-	 *
 	 */
 	public function clean( $args = array(), $assoc_args = array() ) {
 
@@ -193,15 +197,13 @@ class Revisions_CLI extends WP_CLI_Command {
 
 			if ( isset( $assoc_args['after-date'] ) && isset( $assoc_args['before-date'] ) ) {
 				$where .= $wpdb->prepare( ' AND (post_date < %s AND post_date > %s)', $assoc_args['before-date'], $assoc_args['after-date'] );
-			}
-			else if ( isset( $assoc_args['after-date'] ) ) {
+			} else if ( isset( $assoc_args['after-date'] ) ) {
 				$where .= $wpdb->prepare( ' AND post_date > %s', $assoc_args['after-date'] );
-			}
-			else if ( isset( $assoc_args['before-date'] ) ) {
+			} else if ( isset( $assoc_args['before-date'] ) ) {
 				$where .= $wpdb->prepare( ' AND post_date < %s', $assoc_args['before-date'] );
 			}
 
-			// get all IDs for posts in given post type(s)
+			// get all IDs for posts in given post type(s).
 			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
 
 		}
@@ -222,22 +224,22 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		foreach ( $posts as $post_id ) {
 
- 			$revisions = get_children( array(
- 				'order' => 'DESC',
-				'orderby' => 'date ID',
-				'post_parent' => $post_id,
-				'post_type' => 'revision',
-				'post_status' => 'inherit',
- 				// trust me on these
- 				'update_post_meta_cache' => false,
- 				'update_post_term_cache' => false,
- 				'fields' => 'ids'
- 			) );
+			$revisions = get_children( array(
+				'order'                  => 'DESC',
+				'orderby'                => 'date ID',
+				'post_parent'            => $post_id,
+				'post_type'              => 'revision',
+				'post_status'            => 'inherit',
+				// trust me on these.
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				'fields'                 => 'ids',
+			) );
 
- 			if ( ! $revisions ) {
- 				$notify->tick();
- 				continue;
- 			}
+			if ( ! $revisions ) {
+				$notify->tick();
+				continue;
+			}
 
 			$count = count( $revisions );
 
@@ -255,9 +257,9 @@ class Revisions_CLI extends WP_CLI_Command {
 						}
 					}
 				} else {
-					$delete_ids = implode(',', $revisions);
+					$delete_ids = implode( ',', $revisions );
 					if ( empty( $assoc_args['dry-run'] ) ) {
-						$wpdb->query( "DELETE FROM $wpdb->posts WHERE ID IN ($delete_ids)");
+						$wpdb->query( "DELETE FROM $wpdb->posts WHERE ID IN ($delete_ids)" );
 					}
 				}
 			}
@@ -270,7 +272,7 @@ class Revisions_CLI extends WP_CLI_Command {
 		$notify->finish();
 
 		if ( ! empty( $assoc_args['dry-run'] ) ) {
-			WP_CLI::success( sprintf( 'Finished removing %d old revisions. [DRY RUN: not removed]', $total_deleted ) );
+			WP_CLI::success( sprintf( 'Dry Run: Will remove %d old revisions.', $total_deleted ) );
 		} else {
 			WP_CLI::success( sprintf( 'Finished removing %d old revisions.', $total_deleted ) );
 		}
@@ -296,7 +298,6 @@ class Revisions_CLI extends WP_CLI_Command {
 	 *     wp revisions generate 10
 	 *     wp revisions generate --post_id=2
 	 *     wp revisions generate 2 --post_type=post,page
-	 *
 	 */
 	public function generate( $args = array(), $assoc_args = array() ) {
 
@@ -319,7 +320,7 @@ class Revisions_CLI extends WP_CLI_Command {
 				$where .= $wpdb->prepare( ' OR post_type = %s', $post_type );
 			}
 
-			// get all IDs for posts in given post type(s)
+			// get all IDs for posts in given post type(s).
 			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
 
 		}
@@ -339,7 +340,7 @@ class Revisions_CLI extends WP_CLI_Command {
 				$content .= '&nbsp;';
 				wp_update_post( array(
 					'ID'           => $post_id,
-					'post_content' => $content
+					'post_content' => $content,
 				) );
 			}
 		}

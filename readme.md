@@ -29,6 +29,8 @@ For all posts, keep only the last `<keep>` revisions for all posts.
  - `<keep>` *integer*. Defaults to value of `WP_POST_REVISIONS`
  - `--post_type=<post_type>` *string*. Clean revisions for given post type. Default any
  - `--post_id=<post_id>` *integer*. Clean revisions for given post. (Does not yet accept lists)
+ - `--after-date=<date>` *string*. Clean revisions published on or after this date. Use YYYY-MM-DD
+ - `--before-date=<date>` *string*. Clean revisions published on or before this date. Use YYYY-MM-DD
  - `--hard` use `wp_delete_post_revision()` when deleting, this picks up any potential related data such as meta or comments.
 
 ### `wp revisions dump`

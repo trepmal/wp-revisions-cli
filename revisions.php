@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * Plugin Name: Revisions CLI
  * Plugin URI: https://github.com/trepmal/wp-revisions-cli/
  * Description: Plugin wrapper for WP CLI command, WP Revisions CLI
@@ -10,9 +10,10 @@
  * TextDomain:
  * DomainPath:
  * Network:
+ *
+ * @package trepmal/wp-revisions-cli
  */
 
-
-if ( defined('WP_CLI') && WP_CLI ) {
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	include plugin_dir_path( __FILE__ ) . '/revisions-cli.php';
 }

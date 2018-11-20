@@ -63,6 +63,10 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [--post_id=<post-id>]
 	 * : List revisions for given post. Trumps --post_type.
 	 *
+	 * [--fields=<fields>]
+	 * : Comma-separated list of fields to be included in the output. Defaults
+	 * to ID, post_title, post_parent
+	 *
 	 * [--yes]
 	 * : Answer yes to the confirmation message.
 	 *
@@ -76,10 +80,63 @@ class Revisions_CLI extends WP_CLI_Command {
 	 */
 	public function list_( $args = array(), $assoc_args = array() ) {
 
+		// Default fields to return.
+		$fields = [
+			'ID',
+			'post_title',
+			'post_parent',
+		];
+
+		// Customise the fields that are returned.
+		if ( ! empty( $assoc_args['fields'] ) ) {
+
+			$allowed_fields = [
+				'ID',
+				'post_author',
+				'post_date',
+				'post_date_gmt',
+				'post_content',
+				'post_title',
+				'post_excerpt',
+				'post_status',
+				'comment_status',
+				'ping_status',
+				'post_name'.
+				'post_modified',
+				'post_modified_gmt',
+				'post_password',
+				'to_ping',
+				'pinged',
+				'post_content_filtered',
+				'post_parent',
+				'guid',
+				'menu_order',
+				'post_type',
+				'post_mime_type',
+				'comment_count',
+				'permalink',
+			];
+
+			// Don't allow fields that aren't in the above whitelist.
+			$excluded_fields = array_diff( $assoc_args['fields'], $allowed_fields );
+			if ( ! empty( $excluded_fields ) ) {
+				WP_CLI::error( 'Invalid values provided in the fields argument.' );
+			}
+
+			$fields = implode( ',', $assoc_args['fields'] );
+
+		}
+
 		global $wpdb;
 		if ( ! empty( $assoc_args['post_id'] ) ) {
 
-			$revs = $wpdb->get_results( $wpdb->prepare( "SELECT ID, post_title, post_parent FROM $wpdb->posts WHERE post_parent = %d", $assoc_args['post_id'] ) );
+			$revs = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT %s FROM $wpdb->posts WHERE post_parent = %d",
+					$fields,
+					$assoc_args['post_id']
+				)
+			);
 
 		} else if ( ! empty( $assoc_args['post_type'] ) ) {
 
@@ -96,11 +153,22 @@ class Revisions_CLI extends WP_CLI_Command {
 			$post__in = implode( ',', $ids );
 
 			// get revisions of those IDs.
-			$revs = $wpdb->get_results( "SELECT ID, post_title, post_parent FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC" );
+			$revs = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT %s FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN (%s) ORDER BY post_parent DESC",
+					$fields,
+					$post__in
+				)
+			);
 
 		} else {
 
-			$revs = $wpdb->get_results( "SELECT ID, post_title, post_parent FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC" );
+			$revs = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT %s FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC",
+					$fields
+				)
+			);
 
 		}
 

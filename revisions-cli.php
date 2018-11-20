@@ -114,7 +114,6 @@ class Revisions_CLI extends WP_CLI_Command {
 				'post_type',
 				'post_mime_type',
 				'comment_count',
-				'permalink',
 			];
 
 			// Don't allow fields that aren't in the above whitelist.

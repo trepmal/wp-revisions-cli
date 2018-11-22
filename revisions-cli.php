@@ -32,7 +32,7 @@ class Revisions_CLI extends WP_CLI_Command {
 	public function dump( $args = array(), $assoc_args = array() ) {
 
 		global $wpdb;
-		$revs = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->posts WHERE post_type = 'revision'" );
+		$revs = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->posts WHERE post_type = 'revision'" ); // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching
 
 		if ( $revs < 1 ) {
 			WP_CLI::success( 'No revisions.' );
@@ -46,7 +46,7 @@ class Revisions_CLI extends WP_CLI_Command {
 			return;
 		}
 
-		$wpdb->query( "DELETE FROM $wpdb->posts WHERE post_type = 'revision'" );
+		$wpdb->query( "DELETE FROM $wpdb->posts WHERE post_type = 'revision'" ); // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching
 
 		WP_CLI::success( 'Finished removing all revisions.' );
 
@@ -140,9 +140,9 @@ class Revisions_CLI extends WP_CLI_Command {
 		global $wpdb;
 		if ( ! empty( $assoc_args['post_id'] ) ) {
 
-			$revs = $wpdb->get_results(
+			$revs = $wpdb->get_results( // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching
 				$wpdb->prepare(
-					"SELECT {$fields} FROM $wpdb->posts WHERE post_parent = %d",
+					"SELECT {$fields} FROM $wpdb->posts WHERE post_parent = %d", //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $fields is escaped above with esc_sql()
 					$assoc_args['post_id']
 				)
 			);
@@ -157,7 +157,7 @@ class Revisions_CLI extends WP_CLI_Command {
 			}
 
 			// get all IDs for posts in given post type(s).
-			$ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
+			$ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" ); // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- $where is prepared above
 
 			// Prepare the IDs for inclusion in the query.
 			$post__in = array_map(
@@ -169,14 +169,14 @@ class Revisions_CLI extends WP_CLI_Command {
 			$post__in = implode( ',', $ids );
 
 			// get revisions of those IDs.
-			$revs = $wpdb->get_results(
-				"SELECT {$fields} FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC"
+			$revs = $wpdb->get_results( // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching
+				"SELECT {$fields} FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC" //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $fields and $post__in are escaped above with esc_sql()
 			);
 
 		} else {
 
-			$revs = $wpdb->get_results(
-				"SELECT {$fields} FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC"
+			$revs = $wpdb->get_results( // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching
+				"SELECT {$fields} FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC" //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $fields is escaped above with esc_sql()
 			);
 
 		}
@@ -283,7 +283,7 @@ class Revisions_CLI extends WP_CLI_Command {
 			}
 
 			// get all IDs for posts in given post type(s).
-			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=1 {$where}" );
+			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=1 {$where}" ); // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- $where is prepared above
 
 		}
 
@@ -338,7 +338,7 @@ class Revisions_CLI extends WP_CLI_Command {
 				} else {
 					$delete_ids = implode( ',', $revisions );
 					if ( empty( $assoc_args['dry-run'] ) ) {
-						$wpdb->query( "DELETE FROM $wpdb->posts WHERE ID IN ($delete_ids)" );
+						$wpdb->query( "DELETE FROM $wpdb->posts WHERE ID IN ($delete_ids)" ); // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching
 					}
 				}
 			}
@@ -400,7 +400,7 @@ class Revisions_CLI extends WP_CLI_Command {
 			}
 
 			// get all IDs for posts in given post type(s).
-			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
+			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" ); // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- $where is prepared above
 
 		}
 

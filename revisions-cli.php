@@ -192,7 +192,6 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		$formatter = new \WP_CLI\Formatter( $assoc_args, array( 'ID', 'post_parent', 'post_title' ), 'revisions' );
 		$formatter->display_items( $revs );
-		WP_CLI::success( sprintf( '%d revisions.', $total ) );
 
 	}
 

@@ -66,6 +66,9 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [--yes]
 	 * : Answer yes to the confirmation message.
 	 *
+	 * [--format=<format>]
+	 * : Format to use for the output. One of table, csv or json.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions list

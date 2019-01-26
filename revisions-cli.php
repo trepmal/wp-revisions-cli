@@ -64,8 +64,10 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * : List revisions for given post. Trumps --post_type.
 	 *
 	 * [--fields=<fields>]
-	 * : Comma-separated list of fields to be included in the output. Defaults
-	 * to ID, post_title, post_parent
+	 * : Comma-separated list of fields to be included in the output.
+	 * ---
+	 * default: ID,post_title,post_parent
+	 * ---
 	 *
 	 * [--yes]
 	 * : Answer yes to the confirmation message.
@@ -86,12 +88,7 @@ class Revisions_CLI extends WP_CLI_Command {
 		// Default fields to return.
 		$fields = WP_CLI\Utils\get_flag_value(
 			$assoc_args,
-			'fields',
-			[
-				'ID',
-				'post_title',
-				'post_parent',
-			]
+			'fields'
 		);
 
 		if ( is_string( $fields ) ) {
@@ -126,6 +123,9 @@ class Revisions_CLI extends WP_CLI_Command {
 		];
 
 		// Don't allow fields that aren't in the above whitelist.
+		// Note: we do not use array_filter to remove empty elements (in
+		// case of an empty `--fields` flag). This way the error message
+		// will still be triggered instead of running invalid SQL
 		$excluded_fields = array_diff( $fields, $allowed_fields );
 
 		if ( ! empty( $excluded_fields ) ) {

@@ -153,7 +153,7 @@ class FeatureContext extends BehatContext implements ClosuredContextInterface {
 	}
 
 	public static function create_cache_dir() {
-		self::$suite_cache_dir = sys_get_temp_dir() . '/' . uniqid( "wp-cli-test-suite-cache-", TRUE );
+		self::$suite_cache_dir = sys_get_temp_dir() . '/' . uniqid( "wp-cli-test-suite-cache-", true );
 		mkdir( self::$suite_cache_dir );
 		return self::$suite_cache_dir;
 	}
@@ -194,13 +194,13 @@ class FeatureContext extends BehatContext implements ClosuredContextInterface {
 
 	public function create_run_dir() {
 		if ( !isset( $this->variables['RUN_DIR'] ) ) {
-			$this->variables['RUN_DIR'] = sys_get_temp_dir() . '/' . uniqid( "wp-cli-test-run-", TRUE );
+			$this->variables['RUN_DIR'] = sys_get_temp_dir() . '/' . uniqid( "wp-cli-test-run-", true );
 			mkdir( $this->variables['RUN_DIR'] );
 		}
 	}
 
 	public function build_phar( $version = 'same' ) {
-		$this->variables['PHAR_PATH'] = $this->variables['RUN_DIR'] . '/' . uniqid( "wp-cli-build-", TRUE ) . '.phar';
+		$this->variables['PHAR_PATH'] = $this->variables['RUN_DIR'] . '/' . uniqid( "wp-cli-build-", true ) . '.phar';
 
 		$this->proc( Utils\esc_cmd(
 			'php -dphar.readonly=0 %1$s %2$s --version=%3$s && chmod +x %2$s',

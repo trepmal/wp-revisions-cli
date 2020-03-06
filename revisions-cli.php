@@ -5,6 +5,8 @@
  * @package trepmal/wp-revisions-cli
  */
 
+// phpcs:disable WordPress.DB.DirectDatabaseQuery -- this is not a core file
+
 if ( ! defined( 'WP_CLI' ) ) {
 	return;
 }
@@ -12,7 +14,7 @@ if ( ! defined( 'WP_CLI' ) ) {
 /**
  * Manage revisions
  */
-class Revisions_CLI extends WP_CLI_Command {
+class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum.Classes.RestrictedExtendClasses.wp_cli
 
 	/**
 	 * Delete all revisions
@@ -20,7 +22,7 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * ## OPTIONS
 	 *
 	 * [--hard]
-	 * : Hard delete. Slower, uses wp_delete_post_revision(). Alias to wp revisions clean -1
+	 * : Hard delete. Slower, uses wp_delete_post_revision(). Alias to `wp revisions clean -1`
 	 *
 	 * [--yes]
 	 * : Answer yes to the confirmation message.
@@ -32,7 +34,7 @@ class Revisions_CLI extends WP_CLI_Command {
 	public function dump( $args = array(), $assoc_args = array() ) {
 
 		global $wpdb;
-		$revs = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->posts WHERE post_type = 'revision'" ); // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching
+		$revs = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->posts WHERE post_type = 'revision'" );
 
 		if ( $revs < 1 ) {
 			WP_CLI::success( 'No revisions.' );
@@ -46,7 +48,9 @@ class Revisions_CLI extends WP_CLI_Command {
 			return;
 		}
 
-		$wpdb->query( "DELETE FROM $wpdb->posts WHERE post_type = 'revision'" ); // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching
+		$wpdb->query( "DELETE FROM $wpdb->posts WHERE post_type = 'revision'" );
+
+		// @todo: Are there caches to clear?
 
 		WP_CLI::success( 'Finished removing all revisions.' );
 
@@ -132,20 +136,15 @@ class Revisions_CLI extends WP_CLI_Command {
 			WP_CLI::error( 'Invalid values provided in the fields argument.' );
 		}
 
-		$fields = array_map(
-			function ( $field ) {
-				return esc_sql( $field );
-			},
-			$fields
-		);
+		$fields = array_map( 'esc_sql',	$fields	);
 		$fields = implode( ',', $fields );
 
 		global $wpdb;
 		if ( ! empty( $assoc_args['post_id'] ) ) {
 
-			$revs = $wpdb->get_results( // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching
+			$revs = $wpdb->get_results(
 				$wpdb->prepare(
-					"SELECT {$fields} FROM $wpdb->posts WHERE post_parent = %d", //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $fields is escaped above with esc_sql()
+					"SELECT SQL_CALC_FOUND_ROWS {$fields} FROM $wpdb->posts WHERE post_parent = %d",
 					$assoc_args['post_id']
 				)
 			);
@@ -160,31 +159,29 @@ class Revisions_CLI extends WP_CLI_Command {
 			}
 
 			// get all IDs for posts in given post type(s).
-			$ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" ); // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- $where is prepared above
+			$ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
 
 			// Prepare the IDs for inclusion in the query.
-			$post__in = array_map(
-				function ( $id ) {
-					return esc_sql( $id );
-				},
-				$ids
-			);
+			$post__in = array_map( 'esc_sql', $ids );
 			$post__in = implode( ',', $ids );
 
 			// get revisions of those IDs.
-			$revs = $wpdb->get_results( // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching
-				"SELECT {$fields} FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC" //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $fields and $post__in are escaped above with esc_sql()
+			$revs = $wpdb->get_results(
+				"SELECT SQL_CALC_FOUND_ROWS {$fields} FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC"
 			);
 
 		} else {
 
-			$revs = $wpdb->get_results( // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching
-				"SELECT {$fields} FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC" //phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $fields is escaped above with esc_sql()
+			// @todo Better way to get all in case all is a lot?
+
+			$revs = $wpdb->get_results(
+				"SELECT SQL_CALC_FOUND_ROWS {$fields} FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC"
 			);
 
 		}
 
-		$total = count( $revs );
+		// $total = $total ?? count( $revs );
+		$total = $wpdb->get_var( 'SELECT FOUND_ROWS()' );
 
 		if ( $total > 100 ) {
 			WP_CLI::confirm( sprintf( 'List all %d revisions?', $total ), $assoc_args );
@@ -260,6 +257,7 @@ class Revisions_CLI extends WP_CLI_Command {
 		if ( ! empty( $assoc_args['post_id'] ) ) {
 
 			$posts = array( $assoc_args['post_id'] );
+			$posts = array_map( 'absint', $posts );
 
 		} else {
 
@@ -269,23 +267,43 @@ class Revisions_CLI extends WP_CLI_Command {
 				$post_types = explode( ',', $assoc_args['post_type'] );
 			}
 
-			$where = '';
-			$post_type_where = array();
-			foreach ( $post_types as $post_type ) {
-				$post_type_where[] = $wpdb->prepare( 'post_type = %s', $post_type );
-			}
-			$where = ' AND (' . implode( ' OR ', $post_type_where ) . ')';
+			$post_types = array_map( function( $i ) {
+				return sprintf( "'%s'", esc_sql( $i ) );
+			}, $post_types );
+			$post_types = implode( ',', $post_types );
+			$where = "AND post_type IN ( $post_types )";
 
-			if ( isset( $assoc_args['after-date'] ) && isset( $assoc_args['before-date'] ) ) {
-				$where .= $wpdb->prepare( ' AND (post_date < %s AND post_date > %s)', $assoc_args['before-date'], $assoc_args['after-date'] );
-			} else if ( isset( $assoc_args['after-date'] ) ) {
-				$where .= $wpdb->prepare( ' AND post_date > %s', $assoc_args['after-date'] );
-			} else if ( isset( $assoc_args['before-date'] ) ) {
-				$where .= $wpdb->prepare( ' AND post_date < %s', $assoc_args['before-date'] );
+			if ( isset( $assoc_args['after-date'] ) || isset( $assoc_args['before-date'] ) ) {
+
+				// verify dates
+				$strto_aft = isset( $assoc_args['after-date'] ) ? strtotime( $assoc_args['after-date'] ) : false;
+				$strto_bef = isset( $assoc_args['before-date'] ) ? strtotime( $assoc_args['before-date'] ) : false;
+
+				$aft_date = $strto_aft ? date( 'Y-m-d', $strto_aft ) : false;
+				$bef_date = $strto_bef ? date( 'Y-m-d', $strto_bef ) : false;
+
+				if ( $aft_date && $bef_date ) {
+					$where .= $wpdb->prepare( ' AND (post_date < %s AND post_date > %s)', $bef_date, $aft_date );
+				} else if ( $aft_date ) {
+					$where .= $wpdb->prepare( ' AND post_date > %s', $aft_date );
+				} else if ( $bef_date ) {
+					$where .= $wpdb->prepare( ' AND post_date < %s', $bef_date );
+				}
+
+				if (
+					( isset( $assoc_args['after-date'] ) && ! $aft_date ) ||
+					( isset( $assoc_args['before-date'] ) && ! $bef_date )
+				) {
+					WP_CLI::log( 'Invalid date provided' );
+					WP_CLI::log( 'Date: Given -> Computed' );
+					WP_CLI::log( sprintf( 'After: %s -> %s', $assoc_args['after-date'], $aft_date ?: 'none' ) );
+					WP_CLI::log( sprintf( 'Before: %s -> %s', $assoc_args['before-date'], $bef_date ?: 'none' ) );
+					WP_CLI::confirm( 'Proceed?' );
+				}
 			}
 
 			// get all IDs for posts in given post type(s).
-			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=1 {$where}" ); // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- $where is prepared above
+			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=1 {$where}" );
 
 		}
 
@@ -305,6 +323,7 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		foreach ( $posts as $post_id ) {
 
+			// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.get_posts_get_children
 			$revisions = get_children( array(
 				'order'                  => 'DESC',
 				'orderby'                => 'date ID',
@@ -340,7 +359,7 @@ class Revisions_CLI extends WP_CLI_Command {
 				} else {
 					$delete_ids = implode( ',', $revisions );
 					if ( empty( $assoc_args['dry-run'] ) ) {
-						$wpdb->query( "DELETE FROM $wpdb->posts WHERE ID IN ($delete_ids)" ); // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching
+						$wpdb->query( "DELETE FROM $wpdb->posts WHERE ID IN ($delete_ids)" );
 					}
 				}
 			}
@@ -402,7 +421,7 @@ class Revisions_CLI extends WP_CLI_Command {
 			}
 
 			// get all IDs for posts in given post type(s).
-			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" ); // phpcs:ignore WordPress.VIP.DirectDatabaseQuery.DirectQuery,WordPress.VIP.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- $where is prepared above
+			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
 
 		}
 
@@ -412,6 +431,9 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		$count = isset( $args[0] ) ? intval( $args[0] ) : 15;
 
+		$this->start_bulk_operation();
+
+		$inc = 0;
 		foreach ( $posts as $post_id ) {
 			$notify->tick();
 
@@ -428,7 +450,13 @@ class Revisions_CLI extends WP_CLI_Command {
 					'post_content' => $content,
 				) );
 			}
+			$inc++;
+			if ( $inc % 10 === 0 ) {
+				$this->stop_the_insanity();
+			}
 		}
+
+		$this->end_bulk_operation();
 
 		$notify->finish();
 		WP_CLI::success( 'Finished generating revisions.' );
@@ -456,5 +484,40 @@ class Revisions_CLI extends WP_CLI_Command {
 
 	}
 
+	/*
+	 *  Clear all of the caches for memory management
+	 */
+	protected function stop_the_insanity() {
+		global $wpdb, $wp_object_cache;
+
+		$wpdb->queries = array(); // or define( 'WP_IMPORTING', true );
+
+		if ( !is_object( $wp_object_cache ) )
+			return;
+
+		$wp_object_cache->group_ops = array();
+		$wp_object_cache->stats = array();
+		$wp_object_cache->memcache_debug = array();
+		$wp_object_cache->cache = array();
+
+		if ( is_callable( $wp_object_cache, '__remoteset' ) )
+			$wp_object_cache->__remoteset(); // important
+	}
+
+	/**
+	 * Disable term counting so that terms are not all recounted after every term operation
+	 */
+	protected function start_bulk_operation() {
+		// Disable term count updates for speed
+		wp_defer_term_counting( true );
+	}
+
+	/**
+	 * Re-enable Term counting and trigger a term counting operation to update all term counts
+	 */
+	protected function end_bulk_operation() {
+		// This will also trigger a term count.
+		wp_defer_term_counting( false );
+	}
 }
 WP_CLI::add_command( 'revisions', 'Revisions_CLI' );

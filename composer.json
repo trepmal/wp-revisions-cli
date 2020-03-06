@@ -5,12 +5,12 @@
 	"homepage": "https://github.com/trepmal/wp-revisions-cli",
 	"license": "MIT",
 	"require": {
-		"php": ">=5.3"
+		"php": ">=7.1"
 	},
 	"autoload": {
 		"files": [ "revisions-cli.php" ]
 	},
 	"require-dev": {
-		"behat/behat": "~2.5"
+		"behat/behat": "~3.6"
 	}
 }

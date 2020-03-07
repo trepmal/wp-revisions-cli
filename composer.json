@@ -5,12 +5,36 @@
 	"homepage": "https://github.com/trepmal/wp-revisions-cli",
 	"license": "MIT",
 	"require": {
-		"php": ">=7.1"
+		"ext-json": "*",
+		"wp-cli/wp-cli": "^2.1"
+	},
+	"config": {
+		"platform": {
+			"php": "5.4"
+		},
+		"process-timeout": 7200,
+		"sort-packages": true
 	},
 	"autoload": {
-		"files": [ "revisions-cli.php" ]
+		"files": [ ]
 	},
 	"require-dev": {
-		"behat/behat": "~3.6"
+		"wp-cli/wp-cli-tests": "^2.0.7"
+	},
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"scripts": {
+		"behat": "run-behat-tests",
+		"behat-rerun": "rerun-behat-tests",
+		"lint": "run-linter-tests",
+		"phpcs": "run-phpcs-tests",
+		"phpunit": "run-php-unit-tests",
+		"prepare-tests": "install-package-tests",
+		"test": [
+			"@lint",
+			"@phpcs",
+			"@phpunit",
+			"@behat"
+		]
 	}
 }

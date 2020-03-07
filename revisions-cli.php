@@ -96,7 +96,7 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 		);
 
 		if ( is_string( $fields ) ) {
-			$fields = explode( ',', $fields );
+			$fields = wp_parse_list( $fields );
 		}
 
 		// Whitelist the fields we allow to avoid spurious queries.
@@ -144,19 +144,17 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 			$revs = $wpdb->get_results(
 				$wpdb->prepare(
-					"SELECT SQL_CALC_FOUND_ROWS {$fields} FROM $wpdb->posts WHERE post_parent = %d",
+					"SELECT SQL_CALC_FOUND_ROWS {$fields} FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent = %d",
 					$assoc_args['post_id']
 				)
 			);
 
 		} else if ( ! empty( $assoc_args['post_type'] ) ) {
 
-			$post_types = explode( ',', $assoc_args['post_type'] );
-
-			$where = '';
-			foreach ( $post_types as $post_type ) {
-				$where .= $wpdb->prepare( ' OR post_type = %s', $post_type );
-			}
+			$post_types = array_map( function( $i ) {
+				return sprintf( "'%s'", esc_sql( $i ) );
+			}, wp_parse_slug_list( $assoc_args['post_type'] ) );
+			$where = sprintf( 'AND post_type IN ( %s )', implode( ',', $post_types ) );
 
 			// get all IDs for posts in given post type(s).
 			$ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
@@ -172,15 +170,12 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 		} else {
 
-			// @todo Better way to get all in case all is a lot?
-
 			$revs = $wpdb->get_results(
 				"SELECT SQL_CALC_FOUND_ROWS {$fields} FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC"
 			);
 
 		}
 
-		// $total = $total ?? count( $revs );
 		$total = $wpdb->get_var( 'SELECT FOUND_ROWS()' );
 
 		if ( $total > 100 ) {
@@ -221,7 +216,10 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 	 * ## OPTIONS
 	 *
 	 * [<keep>]
-	 * : Number of revisions to keep per post. Defaults to WP_POST_REVISIONS if it is an integer
+	 * : Number of revisions to keep per post. Defaults to WP_POST_REVISIONS if it is an integer.
+	 *
+	 * [--filter-keep]
+	 * : Allow `wp_revisions_to_keep` filter to override keep number.
 	 *
 	 * [--post_type=<post-type>]
 	 * : Clean revisions for given post type(s). Default: any
@@ -264,18 +262,17 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 			if ( empty( $assoc_args['post_type'] ) ) {
 				$post_types = $this->supports_revisions();
 			} else {
-				$post_types = explode( ',', $assoc_args['post_type'] );
+				$post_types = wp_parse_slug_list( $assoc_args['post_type'] );
 			}
 
 			$post_types = array_map( function( $i ) {
 				return sprintf( "'%s'", esc_sql( $i ) );
 			}, $post_types );
-			$post_types = implode( ',', $post_types );
-			$where = "AND post_type IN ( $post_types )";
+			$where = sprintf( 'AND post_type IN ( %s )', implode( ',', $post_types ) );
 
+			// verify dates
 			if ( isset( $assoc_args['after-date'] ) || isset( $assoc_args['before-date'] ) ) {
 
-				// verify dates
 				$strto_aft = isset( $assoc_args['after-date'] ) ? strtotime( $assoc_args['after-date'] ) : false;
 				$strto_bef = isset( $assoc_args['before-date'] ) ? strtotime( $assoc_args['before-date'] ) : false;
 
@@ -296,8 +293,12 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 				) {
 					WP_CLI::log( 'Invalid date provided' );
 					WP_CLI::log( 'Date: Given -> Computed' );
-					WP_CLI::log( sprintf( 'After: %s -> %s', $assoc_args['after-date'], $aft_date ?: 'none' ) );
-					WP_CLI::log( sprintf( 'Before: %s -> %s', $assoc_args['before-date'], $bef_date ?: 'none' ) );
+					if ( isset( $assoc_args['after-date'] ) ) {
+						WP_CLI::log( sprintf( 'After: %s -> %s', $assoc_args['after-date'], $aft_date ?: 'none' ) );
+					}
+					if ( isset( $assoc_args['before-date'] ) ) {
+						WP_CLI::log( sprintf( 'Before: %s -> %s', $assoc_args['before-date'], $bef_date ?: 'none' ) );
+					}
 					WP_CLI::confirm( 'Proceed?' );
 				}
 			}
@@ -318,8 +319,11 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 		} else {
 			$keep = WP_POST_REVISIONS;
 		}
+		$keep = absint( $keep );
 
 		$total_deleted = 0;
+
+		$this->start_bulk_operation();
 
 		foreach ( $posts as $post_id ) {
 
@@ -339,6 +343,10 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 			if ( ! $revisions ) {
 				$notify->tick();
 				continue;
+			}
+
+			if ( isset( $assoc_args['filter-keep'] ) ) {
+				$keep = wp_revisions_to_keep( get_post( $post_id ) );
 			}
 
 			$count = count( $revisions );
@@ -368,6 +376,8 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 			$notify->tick();
 		}
+
+		$this->end_bulk_operation();
 
 		$notify->finish();
 
@@ -406,6 +416,7 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 		if ( ! empty( $assoc_args['post_id'] ) ) {
 
 			$posts = array( $assoc_args['post_id'] );
+			$posts = array_filter( $posts, 'get_post' );
 
 		} else {
 
@@ -433,22 +444,15 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 		$this->start_bulk_operation();
 
+		remove_all_filters( 'wp_revisions_to_keep' );
+		add_filter( 'wp_save_post_revision_check_for_changes', '__return_false' );
 		$inc = 0;
 		foreach ( $posts as $post_id ) {
 			$notify->tick();
 
-			$p = get_post( $post_id );
-			$content = $p->post_content;
 			for ( $i = 0; $i < $count; $i++ ) {
-				if ( '&nbsp;' === substr( $content, -6 ) ) {
-					$content = substr( $content, 0, -6 );
-				} else {
-					$content .= '&nbsp;';
-				}
-				wp_update_post( array(
-					'ID'           => $post_id,
-					'post_content' => $content,
-				) );
+
+				wp_save_post_revision( $post_id );
 			}
 			$inc++;
 			if ( $inc % 10 === 0 ) {

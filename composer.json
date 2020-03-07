@@ -16,7 +16,7 @@
 		"sort-packages": true
 	},
 	"autoload": {
-		"files": [ "revisions-cli.php" ]
+		"files": [ ]
 	},
 	"require-dev": {
 		"wp-cli/wp-cli-tests": "^2.0.7"

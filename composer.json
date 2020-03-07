@@ -15,11 +15,9 @@
 		"process-timeout": 7200,
 		"sort-packages": true
 	},
-	{
-		"extra": {
-			"branch-alias": {
-				"dev-master": "1.x-dev"
-			}
+	"extra": {
+		"branch-alias": {
+			"dev-master": "1.x-dev"
 		}
 	},
 	"autoload": {

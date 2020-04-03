@@ -18,7 +18,15 @@
 	"extra": {
 		"branch-alias": {
 			"dev-master": "1.x-dev"
-		}
+		},
+		"bundled": false,
+		"commands": [
+			"revisions list",
+			"revisions dump",
+			"revisions clean",
+			"revisions generate",
+			"revisions status"
+		]
 	},
 	"autoload": {
 		"files": [ "revisions-cli.php" ]

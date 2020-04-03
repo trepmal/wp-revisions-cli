@@ -1,70 +1,190 @@
-# Revisions CLI [![Build Status](https://travis-ci.org/trepmal/wp-revisions-cli.svg?branch=master)](https://travis-ci.org/trepmal/wp-revisions-cli)
+trepmal/wp-revisions-cli
+========================
 
-WP CLI command for managing revisions
+Manage revisions
 
-## Installation
+[![Build Status](https://travis-ci.org/trepmal/wp-revisions-cli.svg?branch=master)](https://travis-ci.org/trepmal/wp-revisions-cli)
 
-### as wp-cli package (recommended)
+Quick links: [Using](#using) | [Installing](#installing) | [Contributing](#contributing) | [Support](#support)
 
-```
-wp package install trepmal/wp-revisions-cli
-```
+## Using
 
-### as standard plugin (for older installations of wp-cli)
+This package implements the following commands:
 
-```
-wp plugin install https://github.com/trepmal/wp-revisions-cli/archive/master.zip --activate
-```
+### wp revisions list
 
-## Usage
+List all revisions
 
+~~~
+wp revisions list [--post_type=<post-type>] [--post_id=<post-id>] [--fields=<fields>] [--yes] [--format=<format>]
+~~~
 
-For a rundown of all commands at any time, run `wp help revisions`
+**OPTIONS**
 
+	[--post_type=<post-type>]
+		List revisions for given post type(s).
 
-### `wp revisions clean [<keep>]`
+	[--post_id=<post-id>]
+		List revisions for given post. Trumps --post_type.
 
-For all posts, keep only the last `<keep>` revisions for all posts.
+	[--fields=<fields>]
+		Comma-separated list of fields to be included in the output.
+		---
+		default: ID,post_title,post_parent
+		---
 
- - `<keep>` *integer*. Defaults to value of `WP_POST_REVISIONS`
- - `--post_type=<post_type>` *string*. Clean revisions for given post type. Default any
- - `--post_id=<post_id>` *integer*. Clean revisions for given post. (Does not yet accept lists)
- - `--after-date=<date>` *string*. Clean revisions published on or after this date. Use YYYY-MM-DD
- - `--before-date=<date>` *string*. Clean revisions published on or before this date. Use YYYY-MM-DD
- - `--hard` use `wp_delete_post_revision()` when deleting, this picks up any potential related data such as meta or comments.
+	[--yes]
+		Answer yes to the confirmation message.
 
-### `wp revisions dump`
+	[--format=<format>]
+		Format to use for the output. One of table, csv or json.
 
-Dump all revisions for all posts. Faster than `wp revisions clean -1` since it doesn't query each post.
+**EXAMPLES**
 
- - `--hard` Slower. Uses `wp_delete_post_revision()` when deleting, this picks up any potential related data such as meta or comments. Equivalent to `wp revisions clean -1 --hard`
- - `--yes` answer *yes* to confirmation message
-
-### `wp revisions generate [<count>]`
-
-Generate revisions for posts.
-
- - `<count>` *integer*. Number of revisions to generate per post. Default 15
- - `--post_type=<post_type>` *string*. Generate revisions for given post type. Default any
- - `--post_id=<post_id>` *integer*. Generate revisions for given post. (Does not yet accept lists)
-
-### `wp revisions list`
-
-List revisions.
-
- - `--post_type=<post_type>` *string*. Generate revisions for given post type. Default any
- - `--post_id=<post_id>` *integer*. Generate revisions for given post. (Does not yet accept lists)
- - `--yes` answer *yes* to confirmation message
-
-### `wp revisions status`
-
-Get revisions status. Namely, the value of `WP_POST_REVISIONS`
+    wp revisions list
+    wp revisions list --post_id=2
+    wp revisions list --post_type=post,page
 
 
-## Credits
 
-## License
+### wp revisions dump
 
-The MIT License (MIT)  
-Copyright (c) 2016 Kailey Lampert  
-[Full text license](LICENSE)
+Delete all revisions
+
+~~~
+wp revisions dump [--hard] [--yes]
+~~~
+
+**OPTIONS**
+
+	[--hard]
+		Hard delete. Slower, uses wp_delete_post_revision(). Alias to wp revisions clean -1
+
+	[--yes]
+		Answer yes to the confirmation message.
+
+**EXAMPLES**
+
+    wp revisions dump
+
+
+
+### wp revisions clean
+
+Delete old revisions
+
+~~~
+wp revisions clean [<keep>] [--post_type=<post-type>] [--after-date=<yyyy-mm-dd>] [--before-date=<yyyy-mm-dd>] [--post_id=<post-id>] [--hard] [--dry-run]
+~~~
+
+**OPTIONS**
+
+	[<keep>]
+		Number of revisions to keep per post. Defaults to WP_POST_REVISIONS if it is an integer
+
+	[--post_type=<post-type>]
+		Clean revisions for given post type(s). Default: any
+
+	[--after-date=<yyyy-mm-dd>]
+		Clean revisions published on or after this date. Default: none.
+
+	[--before-date=<yyyy-mm-dd>]
+		Clean revisions published on or before this date. Default: none.
+
+	[--post_id=<post-id>]
+		Clean revisions for given post.
+
+	[--hard]
+		Hard delete. Slower, uses wp_delete_post_revision().
+
+	[--dry-run]
+		Dry run, just a test, no actual cleaning done.
+
+**EXAMPLES**
+
+    wp revisions clean
+    wp revisions clean 5
+    wp revisions clean --post_id=2
+    wp revisions clean 5 --post_type=post,page
+    wp revisions clean --after-date=2015-11-01 --before-date=2015-12-30
+    wp revisions clean --after-date=2015-11-01 --before-date=2015-12-30 --dry-run
+
+
+
+### wp revisions generate
+
+Generate revisions
+
+~~~
+wp revisions generate [<count>] [--post_type=<post-type>] [--post_id=<post-id>]
+~~~
+
+**OPTIONS**
+
+	[<count>]
+		Number of revisions to generate per post. Default 15
+
+	[--post_type=<post-type>]
+		Generate revisions for given post type(s). Default any
+
+	[--post_id=<post-id>]
+		Generate revisions for given post.
+
+**EXAMPLES**
+
+    wp revisions generate 10
+    wp revisions generate --post_id=2
+    wp revisions generate 2 --post_type=post,page
+
+
+
+### wp revisions status
+
+Get revision status
+
+~~~
+wp revisions status 
+~~~
+
+**OPTIONS**
+
+**EXAMPLES**
+
+    wp revisions status
+
+## Installing
+
+Installing this package requires WP-CLI v2.1 or greater. Update to the latest stable release with `wp cli update`.
+
+Once you've done so, you can install this package with:
+
+    wp package install git@github.com:trepmal/wp-revisions-cli.git
+
+## Contributing
+
+We appreciate you taking the initiative to contribute to this project.
+
+Contributing isn’t limited to just code. We encourage you to contribute in the way that best fits your abilities, by writing tutorials, giving a demo at your local meetup, helping other users with their support questions, or revising our documentation.
+
+For a more thorough introduction, [check out WP-CLI's guide to contributing](https://make.wordpress.org/cli/handbook/contributing/). This package follows those policy and guidelines.
+
+### Reporting a bug
+
+Think you’ve found a bug? We’d love for you to help us get it fixed.
+
+Before you create a new issue, you should [search existing issues](https://github.com/trepmal/wp-revisions-cli/issues?q=label%3Abug%20) to see if there’s an existing resolution to it, or if it’s already been fixed in a newer version.
+
+Once you’ve done a bit of searching and discovered there isn’t an open or fixed issue for your bug, please [create a new issue](https://github.com/trepmal/wp-revisions-cli/issues/new). Include as much detail as you can, and clear steps to reproduce if possible. For more guidance, [review our bug report documentation](https://make.wordpress.org/cli/handbook/bug-reports/).
+
+### Creating a pull request
+
+Want to contribute a new feature? Please first [open a new issue](https://github.com/trepmal/wp-revisions-cli/issues/new) to discuss whether the feature is a good fit for the project.
+
+Once you've decided to commit the time to seeing your pull request through, [please follow our guidelines for creating a pull request](https://make.wordpress.org/cli/handbook/pull-requests/) to make sure it's a pleasant experience. See "[Setting up](https://make.wordpress.org/cli/handbook/pull-requests/#setting-up)" for details specific to working on this package locally.
+
+## Support
+
+Github issues aren't for general support questions, but there are other venues you can try: https://wp-cli.org/#support
+
+
+*This README.md is generated dynamically from the project's codebase using `wp scaffold package-readme` ([doc](https://github.com/wp-cli/scaffold-package-command#wp-scaffold-package-readme)). To suggest changes, please submit a pull request against the corresponding part of the codebase.*

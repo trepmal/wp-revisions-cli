@@ -16,6 +16,26 @@ Feature: Revisions
       45
       """
 
+    When I run `wp revisions generate 5 --post_type=page`
+    And I run `wp revisions list --format=count`
+    Then STDOUT should contain:
+      """
+      55
+      """
+
+    When I run `wp revisions generate 5 --post_id=1`
+    And I run `wp revisions list --format=count`
+    Then STDOUT should contain:
+      """
+      60
+      """
+
+    When I run `wp revisions clean 5 --post_id=1`
+    Then STDOUT should contain:
+      """
+      Success: Finished removing 15 old revisions.
+      """
+
     When I run `wp revisions clean 5`
     Then STDOUT should contain:
       """

@@ -25,7 +25,8 @@
 			"revisions dump",
 			"revisions clean",
 			"revisions generate",
-			"revisions status"
+			"revisions status",
+			"revisions prune"
 		]
 	},
 	"autoload": {

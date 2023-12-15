@@ -86,10 +86,10 @@ wp revisions clean [<keep>] [--post_type=<post-type>] [--after-date=<yyyy-mm-dd>
 		Clean revisions for given post type(s). Default: any
 
 	[--after-date=<yyyy-mm-dd>]
-		Clean revisions published on or after this date. Default: none.
+		Clean revisions on posts published on or after this date. Default: none.
 
 	[--before-date=<yyyy-mm-dd>]
-		Clean revisions published on or before this date. Default: none.
+		Clean revisions on posts published on or before this date. Default: none.
 
 	[--post_id=<post-id>]
 		Clean revisions for given post.

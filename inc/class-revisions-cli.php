@@ -23,6 +23,9 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 	 * [--yes]
 	 * : Answer yes to the confirmation message.
 	 *
+	 * [--url=<site>]
+	 * : Operate on the supplied network site of a multisite installation.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions dump
@@ -30,10 +33,14 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 	public function dump( $args = array(), $assoc_args = array() ) {
 
 		global $wpdb;
+
+		$this->handle_multisite( $assoc_args );
+
 		$revs = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->posts WHERE post_type = 'revision'" );
 
 		if ( $revs < 1 ) {
 			WP_CLI::success( 'No revisions.' );
+			$this->reset_if_multisite( $assoc_args );
 			return;
 		}
 
@@ -41,7 +48,8 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 		if ( isset( $assoc_args['hard'] ) ) {
 			WP_CLI::run_command( array( 'revisions', 'clean', -1 ), array( 'hard' => '' ) );
-			return;
+			$this->reset_if_multisite( $assoc_args );
+		return;
 		}
 
 		$wpdb->query( "DELETE FROM $wpdb->posts WHERE post_type = 'revision'" );
@@ -71,6 +79,9 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 	 *
 	 * [--yes]
 	 * : Answer yes to the confirmation message.
+	 *
+	 * [--url=<site>]
+	 * : Operate on the supplied network site of a multisite installation.
 	 *
 	 * [--format=<format>]
 	 * : Format to use for the output. One of table, csv or json.
@@ -135,6 +146,8 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 		$fields = array_map( 'esc_sql',	$fields	);
 		$fields = implode( ',', $fields );
 
+		$this->handle_multisite( $assoc_args );
+
 		global $wpdb;
 		if ( ! empty( $assoc_args['post_id'] ) ) {
 
@@ -180,7 +193,7 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 		$formatter = new \WP_CLI\Formatter( $assoc_args, array( 'ID', 'post_parent', 'post_title' ), 'revisions' );
 		$formatter->display_items( $revs );
-
+		$this->reset_if_multisite( $assoc_args );
 	}
 
 	/**
@@ -221,10 +234,10 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 	 * : Clean revisions for given post type(s). Default: any
 	 *
 	 * [--after-date=<yyyy-mm-dd>]
-	 * : Clean revisions on posts published on or after this date. Default: none.
+	 * : Clean revisions published on or after this date. Default: none.
 	 *
 	 * [--before-date=<yyyy-mm-dd>]
-	 * : Clean revisions on posts published on or before this date. Default: none.
+	 * : Clean revisions published on or before this date. Default: none.
 	 *
 	 * [--post_id=<post-id>]
 	 * : Clean revisions for given post.
@@ -234,6 +247,9 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 	 *
 	 * [--dry-run]
 	 * : Dry run, just a test, no actual cleaning done.
+	 *
+	 * [--url=<site>]
+	 * : Operate on the supplied network site of a multisite installation.
 	 *
 	 * ## EXAMPLES
 	 *
@@ -247,6 +263,8 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 	public function clean( $args = array(), $assoc_args = array() ) {
 
 		global $wpdb;
+
+		$this->handle_multisite( $assoc_args );
 
 		if ( ! empty( $assoc_args['post_id'] ) ) {
 
@@ -382,6 +400,8 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 		} else {
 			WP_CLI::success( sprintf( 'Finished removing %d old revisions.', $total_deleted ) );
 		}
+		$this->reset_if_multisite( $assoc_args );
+
 
 	}
 
@@ -399,6 +419,9 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 	 * [--post_id=<post-id>]
 	 * : Generate revisions for given post.
 	 *
+	 * [--url=<site>]
+	 * : Operate on the supplied network site of a multisite installation.
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions generate 10
@@ -408,6 +431,8 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 	public function generate( $args = array(), $assoc_args = array() ) {
 
 		global $wpdb;
+
+		$this->handle_multisite( $assoc_args );
 
 		if ( ! empty( $assoc_args['post_id'] ) ) {
 
@@ -460,6 +485,7 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 		$notify->finish();
 		WP_CLI::success( 'Finished generating revisions.' );
+		$this->reset_if_multisite( $assoc_args );
 
 	}
 
@@ -484,7 +510,7 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 	}
 
-	/*
+	/**
 	 *  Clear all of the caches for memory management
 	 */
 	protected function stop_the_insanity() {
@@ -519,4 +545,39 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 		// This will also trigger a term count.
 		wp_defer_term_counting( false );
 	}
+
+	/**
+	 * Handles the --url param to act on the targets blog, if supplied and valid
+	 *
+	 * @param $assoc_args
+	 *
+	 * @return void
+	 */
+	private function handle_multisite( $assoc_args ) {
+		if ( isset( $assoc_args['url'] ) && is_multisite() ) {
+			$url = untrailingslashit( $assoc_args['url'] );
+			$current_site = get_site_by_path( $url );
+			if ( ! $current_site ) {
+				WP_CLI::error( "Site with URL '{$url}' not found." );
+				return;
+			}
+			switch_to_blog( $current_site->blog_id );
+		}
+	}
+
+	/**
+	 * Reset after a --url option.
+	 *
+	 * @param $assoc_args
+	 *
+	 * @return void
+	 */
+	private function reset_if_multisite( $assoc_args ) {
+		if ( isset( $assoc_args['url'] ) && is_multisite() ) {
+			restore_current_blog();
+		}
+	}
+
 }
+
+WP_CLI::add_command( 'revisions', 'Revisions_CLI' );

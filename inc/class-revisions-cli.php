@@ -49,7 +49,7 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 		if ( isset( $assoc_args['hard'] ) ) {
 			WP_CLI::run_command( array( 'revisions', 'clean', -1 ), array( 'hard' => '' ) );
 			$this->reset_if_multisite( $assoc_args );
-		return;
+			return;
 		}
 
 		$wpdb->query( "DELETE FROM $wpdb->posts WHERE post_type = 'revision'" );

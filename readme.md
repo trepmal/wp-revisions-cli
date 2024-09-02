@@ -16,7 +16,7 @@ This package implements the following commands:
 List all revisions
 
 ~~~
-wp revisions list [--post_type=<post-type>] [--post_id=<post-id>] [--fields=<fields>] [--yes] [--format=<format>]
+wp revisions list [--post_type=<post-type>] [--post_id=<post-id>] [--fields=<fields>] [--yes] [--format=<format>] [--url=<site>]
 ~~~
 
 **OPTIONS**
@@ -39,6 +39,9 @@ wp revisions list [--post_type=<post-type>] [--post_id=<post-id>] [--fields=<fie
 	[--format=<format>]
 		Format to use for the output. One of table, csv or json.
 
+	[--url=<site>]
+		Operate on the supplied network site of a multisite installation.
+
 **EXAMPLES**
 
     wp revisions list
@@ -52,16 +55,20 @@ wp revisions list [--post_type=<post-type>] [--post_id=<post-id>] [--fields=<fie
 Delete all revisions
 
 ~~~
-wp revisions dump [--hard] [--yes]
+wp revisions dump [--hard] [--yes] [--url=<site>]
 ~~~
 
 **OPTIONS**
 
 	[--hard]
 		Hard delete. Slower, uses wp_delete_post_revision(). Alias to wp revisions clean -1
+		This option, while slow, has the advantage of deleting the meta data associated with the revision.
 
 	[--yes]
 		Answer yes to the confirmation message.
+
+	[--url=<site>]
+		Operate on the supplied network site of a multisite installation.
 
 **EXAMPLES**
 
@@ -74,7 +81,7 @@ wp revisions dump [--hard] [--yes]
 Delete old revisions
 
 ~~~
-wp revisions clean [<keep>] [--post_type=<post-type>] [--after-date=<yyyy-mm-dd>] [--before-date=<yyyy-mm-dd>] [--post_id=<post-id>] [--hard] [--dry-run]
+wp revisions clean [<keep>] [--post_type=<post-type>] [--after-date=<yyyy-mm-dd>] [--before-date=<yyyy-mm-dd>] [--post_id=<post-id>] [--hard] [--dry-run] [--url=<site>]
 ~~~
 
 **OPTIONS**
@@ -96,9 +103,13 @@ wp revisions clean [<keep>] [--post_type=<post-type>] [--after-date=<yyyy-mm-dd>
 
 	[--hard]
 		Hard delete. Slower, uses wp_delete_post_revision().
+		This option, while slow, has the advantage of deleting the meta data associated with the revision.
 
 	[--dry-run]
 		Dry run, just a test, no actual cleaning done.
+
+	[--url=<site>]
+		Operate on the supplied network site of a multisite installation.
 
 **EXAMPLES**
 
@@ -116,7 +127,7 @@ wp revisions clean [<keep>] [--post_type=<post-type>] [--after-date=<yyyy-mm-dd>
 Generate revisions
 
 ~~~
-wp revisions generate [<count>] [--post_type=<post-type>] [--post_id=<post-id>]
+wp revisions generate [<count>] [--post_type=<post-type>] [--post_id=<post-id>] [--url=<site>]
 ~~~
 
 **OPTIONS**
@@ -130,6 +141,9 @@ wp revisions generate [<count>] [--post_type=<post-type>] [--post_id=<post-id>]
 	[--post_id=<post-id>]
 		Generate revisions for given post.
 
+	[--url=<site>]
+		Operate on the supplied network site of a multisite installation.
+
 **EXAMPLES**
 
     wp revisions generate 10
@@ -140,7 +154,7 @@ wp revisions generate [<count>] [--post_type=<post-type>] [--post_id=<post-id>]
 
 ### wp revisions status
 
-Get revision status
+Get `WP_POST_REVISIONS` status
 
 ~~~
 wp revisions status 
@@ -151,6 +165,10 @@ wp revisions status
 **EXAMPLES**
 
     wp revisions status
+
+~~~
+Success: Keeping the last 50 revisions
+~~~
 
 ## Installing
 

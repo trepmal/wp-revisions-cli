@@ -74,13 +74,16 @@ wp revisions dump [--hard] [--yes]
 Delete old revisions
 
 ~~~
-wp revisions clean [<keep>] [--post_type=<post-type>] [--after-date=<yyyy-mm-dd>] [--before-date=<yyyy-mm-dd>] [--post_id=<post-id>] [--hard] [--dry-run]
+wp revisions clean [<keep>] [--filter-keep] [--post_type=<post-type>] [--after-date=<yyyy-mm-dd>] [--before-date=<yyyy-mm-dd>] [--post_id=<post-id>] [--hard] [--dry-run]
 ~~~
 
 **OPTIONS**
 
 	[<keep>]
 		Number of revisions to keep per post. Defaults to WP_POST_REVISIONS if it is an integer
+
+	[--filter-keep]
+	   Allow `wp_revisions_to_keep` filter to override keep number.
 
 	[--post_type=<post-type>]
 		Clean revisions for given post type(s). Default: any
@@ -143,7 +146,7 @@ wp revisions generate [<count>] [--post_type=<post-type>] [--post_id=<post-id>]
 Get revision status
 
 ~~~
-wp revisions status 
+wp revisions status
 ~~~
 
 **OPTIONS**

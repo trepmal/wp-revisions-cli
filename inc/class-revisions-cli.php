@@ -320,7 +320,7 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 		$total_deleted = 0;
 
 		$this->start_bulk_operation();
-
+		$inc = 0;
 		foreach ( $posts as $post_id ) {
 
 			// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.get_posts_get_children
@@ -343,6 +343,10 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 			if ( isset( $assoc_args['filter-keep'] ) ) {
 				$keep = wp_revisions_to_keep( get_post( $post_id ) );
+				$inc++;
+				if ( $inc % 10 === 0 ) {
+					$this->stop_the_insanity();
+				}
 			}
 
 			$count = count( $revisions );

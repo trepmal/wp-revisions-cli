@@ -246,6 +246,8 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 	 */
 	public function clean( $args = array(), $assoc_args = array() ) {
 
+		$dry_run = \WP_CLI\Utils\get_flag_value( $assoc_args, 'dry-run', false );
+
 		global $wpdb;
 
 		if ( ! empty( $assoc_args['post_id'] ) ) {
@@ -306,7 +308,13 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 		$total = count( $posts );
 
-		$notify = \WP_CLI\Utils\make_progress_bar( sprintf( 'Cleaning revisions for %d post(s)', $total ), $total );
+		$notify = \WP_CLI\Utils\make_progress_bar(
+			sprintf(
+				'%sCleaning revisions for %d post(s)',
+				$dry_run ? '[DRY RUN] ' : '',
+				$total
+			),
+		$total );
 
 		if ( isset( $args[0] ) ) {
 			$keep = intval( $args[0] );
@@ -356,13 +364,13 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 				if ( isset( $assoc_args['hard'] ) ) {
 					foreach ( $revisions as $id ) {
-						if ( empty( $assoc_args['dry-run'] ) ) {
+						if ( ! $dry_run ) {
 							wp_delete_post_revision( $id );
 						}
 					}
 				} else {
 					$delete_ids = implode( ',', $revisions );
-					if ( empty( $assoc_args['dry-run'] ) ) {
+					if ( ! $dry_run ) {
 						$wpdb->query( "DELETE FROM $wpdb->posts WHERE ID IN ($delete_ids)" );
 					}
 				}
@@ -377,7 +385,7 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 		$notify->finish();
 
-		if ( ! empty( $assoc_args['dry-run'] ) ) {
+		if ( $dry_run ) {
 			WP_CLI::success( sprintf( 'Dry Run: Will remove %d old revisions.', $total_deleted ) );
 		} else {
 			WP_CLI::success( sprintf( 'Finished removing %d old revisions.', $total_deleted ) );

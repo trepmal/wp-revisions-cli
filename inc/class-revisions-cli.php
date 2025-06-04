@@ -106,7 +106,7 @@ class Revisions_CLI extends WP_CLI_Command {
 			$where      = sprintf( 'AND post_type IN ( %s )', implode( ',', $post_types ) );
 
 			// get all IDs for posts in given post type(s).
-			$ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
+			$ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=1 {$where}" );
 
 			// Prepare the IDs for inclusion in the query.
 			$post__in = array_map( 'esc_sql', $ids );

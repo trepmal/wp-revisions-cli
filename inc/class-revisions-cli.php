@@ -85,62 +85,12 @@ class Revisions_CLI extends WP_CLI_Command {
 	 */
 	public function list_( $args = array(), $assoc_args = array() ) {
 
-		// Default fields to return.
-		$fields = WP_CLI\Utils\get_flag_value(
-			$assoc_args,
-			'fields'
-		);
-
-		if ( is_string( $fields ) ) {
-			$fields = wp_parse_list( $fields );
-		}
-
-		// Whitelist the fields we allow to avoid spurious queries.
-		$allowed_fields = [
-			'ID',
-			'post_author',
-			'post_date',
-			'post_date_gmt',
-			'post_content',
-			'post_title',
-			'post_excerpt',
-			'post_status',
-			'comment_status',
-			'ping_status',
-			'post_name',
-			'post_modified',
-			'post_modified_gmt',
-			'post_password',
-			'to_ping',
-			'pinged',
-			'post_content_filtered',
-			'post_parent',
-			'guid',
-			'menu_order',
-			'post_type',
-			'post_mime_type',
-			'comment_count',
-		];
-
-		// Don't allow fields that aren't in the above whitelist.
-		// Note: we do not use array_filter to remove empty elements (in
-		// case of an empty `--fields` flag). This way the error message
-		// will still be triggered instead of running invalid SQL
-		$excluded_fields = array_diff( $fields, $allowed_fields );
-
-		if ( ! empty( $excluded_fields ) ) {
-			WP_CLI::error( 'Invalid values provided in the fields argument.' );
-		}
-
-		$fields = array_map( 'esc_sql', $fields );
-		$fields = implode( ',', $fields );
-
 		global $wpdb;
 		if ( ! empty( $assoc_args['post_id'] ) ) {
 
 			$revs = $wpdb->get_results(
 				$wpdb->prepare(
-					"SELECT SQL_CALC_FOUND_ROWS {$fields} FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent = %d",
+					"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent = %d",
 					$assoc_args['post_id']
 				)
 			);
@@ -164,13 +114,13 @@ class Revisions_CLI extends WP_CLI_Command {
 
 			// get revisions of those IDs.
 			$revs = $wpdb->get_results(
-				"SELECT SQL_CALC_FOUND_ROWS {$fields} FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC"
+				"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC"
 			);
 
 		} else {
 
 			$revs = $wpdb->get_results(
-				"SELECT SQL_CALC_FOUND_ROWS {$fields} FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC"
+				"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC"
 			);
 
 		}

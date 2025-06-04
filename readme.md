@@ -3,7 +3,7 @@ trepmal/wp-revisions-cli
 
 Manage revisions
 
-[![Build Status](https://travis-ci.org/trepmal/wp-revisions-cli.svg?branch=master)](https://travis-ci.org/trepmal/wp-revisions-cli)
+[![Testing](https://github.com/trepmal/wp-revisions-cli/actions/workflows/testing.yml/badge.svg)](https://github.com/trepmal/wp-revisions-cli/actions/workflows/testing.yml)
 
 Quick links: [Using](#using) | [Installing](#installing) | [Contributing](#contributing) | [Support](#support)
 

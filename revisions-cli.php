@@ -14,7 +14,9 @@
  * @package trepmal/wp-revisions-cli
  */
 
-if ( ! defined( 'WP_CLI' ) ) return;
+if ( ! defined( 'WP_CLI' ) ) {
+	return;
+}
 
 require_once __DIR__ . '/inc/class-revisions-cli.php';
 

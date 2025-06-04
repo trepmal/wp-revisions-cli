@@ -6,14 +6,14 @@
 	"license": "MIT",
 	"require": {
 		"ext-json": "*",
-		"wp-cli/wp-cli": "^2.1"
+		"wp-cli/wp-cli": "^2.12"
 	},
 	"config": {
-		"platform": {
-			"php": "5.4"
-		},
 		"process-timeout": 7200,
-		"sort-packages": true
+		"sort-packages": true,
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
 	},
 	"extra": {
 		"branch-alias": {
@@ -32,7 +32,7 @@
 		"files": [ "revisions-cli.php" ]
 	},
 	"require-dev": {
-		"wp-cli/wp-cli-tests": "^2.0.7"
+		"wp-cli/wp-cli-tests": "^4"
 	},
 	"minimum-stability": "dev",
 	"prefer-stable": true,

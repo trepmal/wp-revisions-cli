@@ -10,7 +10,8 @@
 /**
  * Manage revisions
  */
-class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum.Classes.RestrictedExtendClasses.wp_cli
+// phpcs:ignore WordPressVIPMinimum.Classes.RestrictedExtendClasses.wp_cli
+class Revisions_CLI extends WP_CLI_Command {
 
 	/**
 	 * Delete all revisions
@@ -49,7 +50,6 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 		// @todo: Are there caches to clear?
 
 		WP_CLI::success( 'Finished removing all revisions.' );
-
 	}
 
 	/**
@@ -85,72 +85,25 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 	 */
 	public function list_( $args = array(), $assoc_args = array() ) {
 
-		// Default fields to return.
-		$fields = WP_CLI\Utils\get_flag_value(
-			$assoc_args,
-			'fields'
-		);
-
-		if ( is_string( $fields ) ) {
-			$fields = wp_parse_list( $fields );
-		}
-
-		// Whitelist the fields we allow to avoid spurious queries.
-		$allowed_fields = [
-			'ID',
-			'post_author',
-			'post_date',
-			'post_date_gmt',
-			'post_content',
-			'post_title',
-			'post_excerpt',
-			'post_status',
-			'comment_status',
-			'ping_status',
-			'post_name',
-			'post_modified',
-			'post_modified_gmt',
-			'post_password',
-			'to_ping',
-			'pinged',
-			'post_content_filtered',
-			'post_parent',
-			'guid',
-			'menu_order',
-			'post_type',
-			'post_mime_type',
-			'comment_count',
-		];
-
-		// Don't allow fields that aren't in the above whitelist.
-		// Note: we do not use array_filter to remove empty elements (in
-		// case of an empty `--fields` flag). This way the error message
-		// will still be triggered instead of running invalid SQL
-		$excluded_fields = array_diff( $fields, $allowed_fields );
-
-		if ( ! empty( $excluded_fields ) ) {
-			WP_CLI::error( 'Invalid values provided in the fields argument.' );
-		}
-
-		$fields = array_map( 'esc_sql',	$fields	);
-		$fields = implode( ',', $fields );
-
 		global $wpdb;
 		if ( ! empty( $assoc_args['post_id'] ) ) {
 
 			$revs = $wpdb->get_results(
 				$wpdb->prepare(
-					"SELECT SQL_CALC_FOUND_ROWS {$fields} FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent = %d",
+					"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent = %d",
 					$assoc_args['post_id']
 				)
 			);
 
-		} else if ( ! empty( $assoc_args['post_type'] ) ) {
+		} elseif ( ! empty( $assoc_args['post_type'] ) ) {
 
-			$post_types = array_map( function( $i ) {
-				return sprintf( "'%s'", esc_sql( $i ) );
-			}, wp_parse_slug_list( $assoc_args['post_type'] ) );
-			$where = sprintf( 'AND post_type IN ( %s )', implode( ',', $post_types ) );
+			$post_types = array_map(
+				function ( $i ) {
+					return sprintf( "'%s'", esc_sql( $i ) );
+				},
+				wp_parse_slug_list( $assoc_args['post_type'] )
+			);
+			$where      = sprintf( 'AND post_type IN ( %s )', implode( ',', $post_types ) );
 
 			// get all IDs for posts in given post type(s).
 			$ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
@@ -161,13 +114,13 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 			// get revisions of those IDs.
 			$revs = $wpdb->get_results(
-				"SELECT SQL_CALC_FOUND_ROWS {$fields} FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC"
+				"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC"
 			);
 
 		} else {
 
 			$revs = $wpdb->get_results(
-				"SELECT SQL_CALC_FOUND_ROWS {$fields} FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC"
+				"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC"
 			);
 
 		}
@@ -180,7 +133,6 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 		$formatter = new \WP_CLI\Formatter( $assoc_args, array( 'ID', 'post_parent', 'post_title' ), 'revisions' );
 		$formatter->display_items( $revs );
-
 	}
 
 	/**
@@ -203,7 +155,6 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 		} else {
 			WP_CLI::success( 'WP_POST_REVISIONS is undefined.' );
 		}
-
 	}
 
 	/**
@@ -261,10 +212,13 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 				$post_types = wp_parse_slug_list( $assoc_args['post_type'] );
 			}
 
-			$post_types = array_map( function( $i ) {
-				return sprintf( "'%s'", esc_sql( $i ) );
-			}, $post_types );
-			$where = sprintf( 'AND post_type IN ( %s )', implode( ',', $post_types ) );
+			$post_types = array_map(
+				function ( $i ) {
+					return sprintf( "'%s'", esc_sql( $i ) );
+				},
+				$post_types
+			);
+			$where      = sprintf( 'AND post_type IN ( %s )', implode( ',', $post_types ) );
 
 			// verify dates
 			if ( isset( $assoc_args['after-date'] ) || isset( $assoc_args['before-date'] ) ) {
@@ -277,9 +231,9 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 				if ( $aft_date && $bef_date ) {
 					$where .= $wpdb->prepare( ' AND (post_date < %s AND post_date > %s)', $bef_date, $aft_date );
-				} else if ( $aft_date ) {
+				} elseif ( $aft_date ) {
 					$where .= $wpdb->prepare( ' AND post_date > %s', $aft_date );
-				} else if ( $bef_date ) {
+				} elseif ( $bef_date ) {
 					$where .= $wpdb->prepare( ' AND post_date < %s', $bef_date );
 				}
 
@@ -310,7 +264,7 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 		if ( isset( $args[0] ) ) {
 			$keep = intval( $args[0] );
-		} else if ( true === WP_POST_REVISIONS ) {
+		} elseif ( true === WP_POST_REVISIONS ) {
 			WP_CLI::error( 'WP_POST_REVISIONS is set to true (keeps all revisions). Please pass a number.' );
 		} else {
 			$keep = WP_POST_REVISIONS;
@@ -324,17 +278,19 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 		foreach ( $posts as $post_id ) {
 
 			// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.get_posts_get_children
-			$revisions = get_children( array(
-				'order'                  => 'DESC',
-				'orderby'                => 'date ID',
-				'post_parent'            => $post_id,
-				'post_type'              => 'revision',
-				'post_status'            => 'inherit',
-				// trust me on these.
-				'update_post_meta_cache' => false,
-				'update_post_term_cache' => false,
-				'fields'                 => 'ids',
-			) );
+			$revisions = get_children(
+				array(
+					'order'                  => 'DESC',
+					'orderby'                => 'date ID',
+					'post_parent'            => $post_id,
+					'post_type'              => 'revision',
+					'post_status'            => 'inherit',
+					// trust me on these.
+					'update_post_meta_cache' => false,
+					'update_post_term_cache' => false,
+					'fields'                 => 'ids',
+				)
+			);
 
 			if ( ! $revisions ) {
 				$notify->tick();
@@ -382,7 +338,6 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 		} else {
 			WP_CLI::success( sprintf( 'Finished removing %d old revisions.', $total_deleted ) );
 		}
-
 	}
 
 	/**
@@ -450,8 +405,8 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 				wp_save_post_revision( $post_id );
 			}
-			$inc++;
-			if ( $inc % 10 === 0 ) {
+			++$inc;
+			if ( 0 === $inc % 10 ) {
 				$this->stop_the_insanity();
 			}
 		}
@@ -460,7 +415,6 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 
 		$notify->finish();
 		WP_CLI::success( 'Finished generating revisions.' );
-
 	}
 
 	/**
@@ -481,7 +435,6 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 		}
 
 		return $supports_revisions;
-
 	}
 
 	/*
@@ -490,18 +443,20 @@ class Revisions_CLI extends WP_CLI_Command { // phpcs:ignore WordPressVIPMinimum
 	protected function stop_the_insanity() {
 		global $wpdb, $wp_object_cache;
 
-		$wpdb->queries = array(); // or define( 'WP_IMPORTING', true );
+		$wpdb->queries = array();
 
-		if ( !is_object( $wp_object_cache ) )
+		if ( ! is_object( $wp_object_cache ) ) {
 			return;
+		}
 
-		$wp_object_cache->group_ops = array();
-		$wp_object_cache->stats = array();
+		$wp_object_cache->group_ops      = array();
+		$wp_object_cache->stats          = array();
 		$wp_object_cache->memcache_debug = array();
-		$wp_object_cache->cache = array();
+		$wp_object_cache->cache          = array();
 
-		if ( is_callable( $wp_object_cache, '__remoteset' ) )
+		if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
 			$wp_object_cache->__remoteset(); // important
+		}
 	}
 
 	/**

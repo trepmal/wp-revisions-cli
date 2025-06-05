@@ -59,3 +59,17 @@ Feature: Revisions
       """
       []
       """
+
+    When I run `wp revisions generate 5 --post_type=page`
+    And I run `wp revisions list --post_type=page --format=count`
+    Then STDOUT should contain:
+      """
+      10
+      """
+
+    When I run `wp post delete $(wp post list --post_type=page --field=ID) --force`
+    And I run `wp revisions list --post_type=page --format=count`
+    Then STDOUT should contain:
+      """
+      0
+      """

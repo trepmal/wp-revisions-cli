@@ -19,5 +19,7 @@ if ( ! defined( 'WP_CLI' ) ) {
 }
 
 require_once __DIR__ . '/inc/class-revisions-cli.php';
+require_once __DIR__ . '/inc/class-revisions-pruner.php';
 
 WP_CLI::add_command( 'revisions', 'Revisions_CLI' );
+WP_CLI::add_command( 'revisions prune', [ 'Revisions_Pruner', 'prune' ] );

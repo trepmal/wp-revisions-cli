@@ -66,3 +66,10 @@ Feature: Revisions
       """
       10
       """
+
+    When I run `wp post delete $(wp post list --post_type=page --field=ID) --force`
+    And I run `wp revisions list --post_type=page --format=count`
+    Then STDOUT should contain:
+      """
+      0
+      """

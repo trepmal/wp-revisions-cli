@@ -59,3 +59,10 @@ Feature: Revisions
       """
       []
       """
+
+    When I run `wp revisions generate 5 --post_type=page`
+    And I run `wp revisions list --post_type=page --format=count`
+    Then STDOUT should contain:
+      """
+      10
+      """

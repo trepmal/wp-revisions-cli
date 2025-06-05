@@ -104,19 +104,21 @@ class Revisions_CLI extends WP_CLI_Command {
 				wp_parse_slug_list( $assoc_args['post_type'] )
 			);
 			$where      = sprintf( 'AND post_type IN ( %s )', implode( ',', $post_types ) );
-
 			// get all IDs for posts in given post type(s).
 			$ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=1 {$where}" );
 
-			// Prepare the IDs for inclusion in the query.
-			$post__in = array_map( 'esc_sql', $ids );
-			$post__in = implode( ',', $ids );
+			if ( $ids ) {
+				// Prepare the IDs for inclusion in the query.
+				$post__in = array_map( 'esc_sql', $ids );
+				$post__in = implode( ',', $ids );
 
-			// get revisions of those IDs.
-			$revs = $wpdb->get_results(
-				"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC"
-			);
-
+				// get revisions of those IDs.
+				$revs = $wpdb->get_results(
+					"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC"
+				);
+			} else {
+				$revs = [];
+			}
 		} else {
 
 			$revs = $wpdb->get_results(

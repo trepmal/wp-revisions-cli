@@ -200,19 +200,36 @@ class Revisions_CLI extends WP_CLI_Command {
 	 */
 	public function clean( $args = array(), $assoc_args = array() ) {
 
+		$keep = WP_CLI\Utils\get_flag_value( $args, 0, false );
+		if ( $keep ) {
+			$keep = absint( $keep );
+		} elseif ( true === WP_POST_REVISIONS ) {
+			WP_CLI::error( 'WP_POST_REVISIONS is set to true (keeps all revisions). Please pass a number.' );
+		} else {
+			$keep = absint( WP_POST_REVISIONS );
+		}
+
+		$filter_keep = WP_CLI\Utils\get_flag_value( $assoc_args, 'filter-keep', false );
+		$post_type   = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_type', false );
+		$post_id     = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_id', false );
+		$after_date  = WP_CLI\Utils\get_flag_value( $assoc_args, 'after_date', false );
+		$before_date = WP_CLI\Utils\get_flag_value( $assoc_args, 'before_date', false );
+		$hard        = WP_CLI\Utils\get_flag_value( $assoc_args, 'hard', false );
+		$dry_run     = WP_CLI\Utils\get_flag_value( $assoc_args, 'dry-run', false );
+
 		global $wpdb;
 
-		if ( ! empty( $assoc_args['post_id'] ) ) {
+		if ( $post_id ) {
 
-			$posts = array( $assoc_args['post_id'] );
+			$posts = array( $post_id );
 			$posts = array_map( 'absint', $posts );
 
 		} else {
 
-			if ( empty( $assoc_args['post_type'] ) ) {
+			if ( ! $post_type ) {
 				$post_types = $this->supports_revisions();
 			} else {
-				$post_types = wp_parse_slug_list( $assoc_args['post_type'] );
+				$post_types = wp_parse_slug_list( $post_type );
 			}
 
 			$post_types = array_map(
@@ -224,33 +241,33 @@ class Revisions_CLI extends WP_CLI_Command {
 			$where      = sprintf( 'AND post_type IN ( %s )', implode( ',', $post_types ) );
 
 			// verify dates
-			if ( isset( $assoc_args['after-date'] ) || isset( $assoc_args['before-date'] ) ) {
+			if ( $after_date || $before_date ) {
 
-				$strto_aft = isset( $assoc_args['after-date'] ) ? strtotime( $assoc_args['after-date'] ) : false;
-				$strto_bef = isset( $assoc_args['before-date'] ) ? strtotime( $assoc_args['before-date'] ) : false;
+				$strto_aft = $after_date ? strtotime( $after_date ) : false;
+				$strto_bef = $before_date ? strtotime( $before_date ) : false;
 
-				$aft_date = $strto_aft ? date( 'Y-m-d', $strto_aft ) : false;
-				$bef_date = $strto_bef ? date( 'Y-m-d', $strto_bef ) : false;
+				$after_ymd  = $strto_aft ? date( 'Y-m-d', $strto_aft ) : false;
+				$before_ymd = $strto_bef ? date( 'Y-m-d', $strto_bef ) : false;
 
-				if ( $aft_date && $bef_date ) {
-					$where .= $wpdb->prepare( ' AND (post_date < %s AND post_date > %s)', $bef_date, $aft_date );
-				} elseif ( $aft_date ) {
-					$where .= $wpdb->prepare( ' AND post_date > %s', $aft_date );
-				} elseif ( $bef_date ) {
-					$where .= $wpdb->prepare( ' AND post_date < %s', $bef_date );
+				if ( $after_ymd && $before_ymd ) {
+					$where .= $wpdb->prepare( ' AND (post_date < %s AND post_date > %s)', $before_ymd, $after_ymd );
+				} elseif ( $after_ymd ) {
+					$where .= $wpdb->prepare( ' AND post_date > %s', $after_ymd );
+				} elseif ( $before_ymd ) {
+					$where .= $wpdb->prepare( ' AND post_date < %s', $before_ymd );
 				}
 
 				if (
-					( isset( $assoc_args['after-date'] ) && ! $aft_date ) ||
-					( isset( $assoc_args['before-date'] ) && ! $bef_date )
+					( $after_date && ! $after_ymd ) ||
+					( $before_date && ! $before_ymd )
 				) {
 					WP_CLI::log( 'Invalid date provided' );
 					WP_CLI::log( 'Date: Given -> Computed' );
-					if ( isset( $assoc_args['after-date'] ) ) {
-						WP_CLI::log( sprintf( 'After: %s -> %s', $assoc_args['after-date'], $aft_date ?: 'none' ) );
+					if ( $after_date ) {
+						WP_CLI::log( sprintf( 'After: %s -> %s', $after_date, $after_ymd ?: 'none' ) );
 					}
-					if ( isset( $assoc_args['before-date'] ) ) {
-						WP_CLI::log( sprintf( 'Before: %s -> %s', $assoc_args['before-date'], $bef_date ?: 'none' ) );
+					if ( $before_date ) {
+						WP_CLI::log( sprintf( 'Before: %s -> %s', $before_date, $before_ymd ?: 'none' ) );
 					}
 					WP_CLI::confirm( 'Proceed?' );
 				}
@@ -264,15 +281,6 @@ class Revisions_CLI extends WP_CLI_Command {
 		$total = count( $posts );
 
 		$notify = \WP_CLI\Utils\make_progress_bar( sprintf( 'Cleaning revisions for %d post(s)', $total ), $total );
-
-		if ( isset( $args[0] ) ) {
-			$keep = intval( $args[0] );
-		} elseif ( true === WP_POST_REVISIONS ) {
-			WP_CLI::error( 'WP_POST_REVISIONS is set to true (keeps all revisions). Please pass a number.' );
-		} else {
-			$keep = WP_POST_REVISIONS;
-		}
-		$keep = absint( $keep );
 
 		$total_deleted = 0;
 
@@ -300,7 +308,7 @@ class Revisions_CLI extends WP_CLI_Command {
 				continue;
 			}
 
-			if ( isset( $assoc_args['filter-keep'] ) ) {
+			if ( $filter_keep ) {
 				$keep = wp_revisions_to_keep( get_post( $post_id ) );
 			}
 
@@ -313,15 +321,15 @@ class Revisions_CLI extends WP_CLI_Command {
 
 				$total_deleted += count( $revisions );
 
-				if ( isset( $assoc_args['hard'] ) ) {
+				if ( $hard ) {
 					foreach ( $revisions as $id ) {
-						if ( empty( $assoc_args['dry-run'] ) ) {
+						if ( ! $dry_run ) {
 							wp_delete_post_revision( $id );
 						}
 					}
 				} else {
 					$delete_ids = implode( ',', $revisions );
-					if ( empty( $assoc_args['dry-run'] ) ) {
+					if ( ! $dry_run ) {
 						$wpdb->query( "DELETE FROM $wpdb->posts WHERE ID IN ($delete_ids)" );
 					}
 				}
@@ -336,7 +344,7 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		$notify->finish();
 
-		if ( ! empty( $assoc_args['dry-run'] ) ) {
+		if ( $dry_run ) {
 			WP_CLI::success( sprintf( 'Dry Run: Will remove %d old revisions.', $total_deleted ) );
 		} else {
 			WP_CLI::success( sprintf( 'Finished removing %d old revisions.', $total_deleted ) );

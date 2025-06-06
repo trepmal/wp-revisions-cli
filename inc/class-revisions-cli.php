@@ -129,7 +129,8 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		$total = $wpdb->get_var( 'SELECT FOUND_ROWS()' );
 
-		if ( $total > 100 ) {
+		$format_is_count = isset( $assoc_args['format'] ) && 'count' === $assoc_args['format'];
+		if ( ! $format_is_count && $total > 100 ) {
 			WP_CLI::confirm( sprintf( 'List all %d revisions?', $total ), $assoc_args );
 		}
 

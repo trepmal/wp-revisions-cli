@@ -373,19 +373,25 @@ class Revisions_CLI extends WP_CLI_Command {
 	 */
 	public function generate( $args = array(), $assoc_args = array() ) {
 
+		$count = WP_CLI\Utils\get_flag_value( $args, 0, 15 );
+		$count = absint( $count );
+
+		$post_id   = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_id', false );
+		$post_type = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_type', false );
+
 		global $wpdb;
 
-		if ( ! empty( $assoc_args['post_id'] ) ) {
+		if ( $post_id ) {
 
-			$posts = array( $assoc_args['post_id'] );
+			$posts = array( $post_id );
 			$posts = array_filter( $posts, 'get_post' );
 
 		} else {
 
-			if ( empty( $assoc_args['post_type'] ) ) {
+			if ( ! $post_type ) {
 				$post_types = $this->supports_revisions();
 			} else {
-				$post_types = explode( ',', $assoc_args['post_type'] );
+				$post_types = wp_parse_slug_list( $post_type );
 			}
 
 			$where = '';
@@ -401,8 +407,6 @@ class Revisions_CLI extends WP_CLI_Command {
 		$total = count( $posts );
 
 		$notify = \WP_CLI\Utils\make_progress_bar( sprintf( 'Generating revisions for %d post(s)', $total ), $total );
-
-		$count = isset( $args[0] ) ? intval( $args[0] ) : 15;
 
 		$this->start_bulk_operation();
 

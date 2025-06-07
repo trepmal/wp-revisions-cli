@@ -107,6 +107,7 @@ class Revisions_CLI extends WP_CLI_Command {
 			);
 			$where      = sprintf( 'AND post_type IN ( %s )', implode( ',', $post_types ) );
 			// get all IDs for posts in given post type(s).
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- IN statement
 			$ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=1 {$where}" );
 
 			if ( $ids ) {
@@ -116,6 +117,7 @@ class Revisions_CLI extends WP_CLI_Command {
 
 				// get revisions of those IDs.
 				$revs = $wpdb->get_results(
+					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- IN statement
 					"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC"
 				);
 			} else {
@@ -276,6 +278,7 @@ class Revisions_CLI extends WP_CLI_Command {
 			}
 
 			// get all IDs for posts in given post type(s).
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- IN statement
 			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=1 {$where}" );
 
 		}
@@ -332,6 +335,7 @@ class Revisions_CLI extends WP_CLI_Command {
 				} else {
 					$delete_ids = implode( ',', $revisions );
 					if ( ! $dry_run ) {
+						// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- IN statement
 						$wpdb->query( "DELETE FROM $wpdb->posts WHERE ID IN ($delete_ids)" );
 					}
 				}
@@ -402,6 +406,7 @@ class Revisions_CLI extends WP_CLI_Command {
 			}
 
 			// get all IDs for posts in given post type(s).
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- IN statement
 			$posts = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE 1=2 {$where}" );
 
 		}

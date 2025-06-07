@@ -5,12 +5,9 @@
  * @package trepmal/wp-revisions-cli
  */
 
-// phpcs:disable WordPress.DB.DirectDatabaseQuery -- this is not a core file
-
 /**
  * Manage revisions
  */
-// phpcs:ignore WordPressVIPMinimum.Classes.RestrictedExtendClasses.wp_cli
 class Revisions_CLI extends WP_CLI_Command {
 
 	/**

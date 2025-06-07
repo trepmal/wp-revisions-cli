@@ -30,7 +30,7 @@ class Revisions_CLI extends WP_CLI_Command {
 	 */
 	public function dump( $args = array(), $assoc_args = array() ) {
 
-		$hard        = WP_CLI\Utils\get_flag_value( $assoc_args, 'hard', false );
+		$hard = WP_CLI\Utils\get_flag_value( $assoc_args, 'hard', false );
 
 		global $wpdb;
 		$revs = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->posts WHERE post_type = 'revision'" );

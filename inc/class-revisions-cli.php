@@ -213,8 +213,8 @@ class Revisions_CLI extends WP_CLI_Command {
 		$filter_keep = WP_CLI\Utils\get_flag_value( $assoc_args, 'filter-keep', false );
 		$post_type   = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_type', false );
 		$post_id     = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_id', false );
-		$after_date  = WP_CLI\Utils\get_flag_value( $assoc_args, 'after_date', false );
-		$before_date = WP_CLI\Utils\get_flag_value( $assoc_args, 'before_date', false );
+		$after_date  = WP_CLI\Utils\get_flag_value( $assoc_args, 'after-date', false );
+		$before_date = WP_CLI\Utils\get_flag_value( $assoc_args, 'before-date', false );
 		$hard        = WP_CLI\Utils\get_flag_value( $assoc_args, 'hard', false );
 		$dry_run     = WP_CLI\Utils\get_flag_value( $assoc_args, 'dry-run', false );
 

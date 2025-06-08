@@ -368,6 +368,9 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [--post_id=<post-id>]
 	 * : Generate revisions for given post.
 	 *
+	 * [--oldest_date=<oldest-date>]
+	 * : Oldest date for revisions. Default: 5 years ago
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions generate 10
@@ -379,8 +382,17 @@ class Revisions_CLI extends WP_CLI_Command {
 		$count = WP_CLI\Utils\get_flag_value( $args, 0, 15 );
 		$count = absint( $count );
 
-		$post_id   = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_id', false );
-		$post_type = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_type', false );
+		$post_id     = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_id', false );
+		$post_type   = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_type', false );
+		$oldest_date = WP_CLI\Utils\get_flag_value( $assoc_args, 'oldest_date', '5 years ago' );
+
+		$oldest_date_time = strtotime( $oldest_date );
+		if ( false === $oldest_date_time ) {
+			WP_CLI::error( 'oldest_date value invalid' );
+		}
+
+		// distribute revisions between oldest date and current time
+		$interval = round( ( time() - $oldest_date_time ) / $count );
 
 		global $wpdb;
 
@@ -415,12 +427,28 @@ class Revisions_CLI extends WP_CLI_Command {
 		$this->start_bulk_operation();
 
 		remove_all_filters( 'wp_revisions_to_keep' );
+		remove_all_filters( 'wp_insert_post_data' );
 		add_filter( 'wp_save_post_revision_check_for_changes', '__return_false' );
+
 		$inc = 0;
 		foreach ( $posts as $post_id ) {
 			$notify->tick();
 
 			for ( $i = 0; $i < $count; $i++ ) {
+
+				$time = $oldest_date_time + ( $interval * $i );
+
+				add_filter(
+					'wp_insert_post_data',
+					function ( $data ) use ( $time ) {
+						$data['post_date_gmt']     = gmdate( 'Y-m-d H:i:s', $time );
+						$data['post_date']         = wp_date( 'Y-m-d H:i:s', $time );
+						$data['post_modified_gmt'] = gmdate( 'Y-m-d H:i:s', $time );
+						$data['post_modified']     = wp_date( 'Y-m-d H:i:s', $time );
+						return $data;
+					},
+					10
+				);
 
 				wp_save_post_revision( $post_id );
 			}

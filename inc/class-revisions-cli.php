@@ -115,7 +115,7 @@ class Revisions_CLI extends WP_CLI_Command {
 				// get revisions of those IDs.
 				$revs = $wpdb->get_results(
 					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- IN statement
-					"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC"
+					"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent, post_date, ID DESC"
 				);
 			} else {
 				$revs = [];
@@ -123,7 +123,7 @@ class Revisions_CLI extends WP_CLI_Command {
 		} else {
 
 			$revs = $wpdb->get_results(
-				"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC"
+				"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent, post_date, ID DESC"
 			);
 
 		}

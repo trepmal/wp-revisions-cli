@@ -58,7 +58,7 @@ wp revisions dump [--hard] [--yes]
 **OPTIONS**
 
 	[--hard]
-		Hard delete. Slower, uses wp_delete_post_revision(). Alias to wp revisions clean -1
+		Hard delete. Slower, uses wp_delete_post_revision(). Alias to `wp revisions clean -1`
 
 	[--yes]
 		Answer yes to the confirmation message.
@@ -74,22 +74,25 @@ wp revisions dump [--hard] [--yes]
 Delete old revisions
 
 ~~~
-wp revisions clean [<keep>] [--post_type=<post-type>] [--after-date=<yyyy-mm-dd>] [--before-date=<yyyy-mm-dd>] [--post_id=<post-id>] [--hard] [--dry-run]
+wp revisions clean [<keep>] [--filter-keep] [--post_type=<post-type>] [--after-date=<yyyy-mm-dd>] [--before-date=<yyyy-mm-dd>] [--post_id=<post-id>] [--hard] [--dry-run]
 ~~~
 
 **OPTIONS**
 
 	[<keep>]
-		Number of revisions to keep per post. Defaults to WP_POST_REVISIONS if it is an integer
+		Number of revisions to keep per post. Defaults to WP_POST_REVISIONS if it is an integer.
+
+	[--filter-keep]
+		Allow `wp_revisions_to_keep` filter to override keep number.
 
 	[--post_type=<post-type>]
 		Clean revisions for given post type(s). Default: any
 
 	[--after-date=<yyyy-mm-dd>]
-		Clean revisions on posts published on or after this date. Default: none.
+		Clean revisions on posts published on or after this date (GMT). Default: none.
 
 	[--before-date=<yyyy-mm-dd>]
-		Clean revisions on posts published on or before this date. Default: none.
+		Clean revisions on posts published before this date (GMT). Default: none.
 
 	[--post_id=<post-id>]
 		Clean revisions for given post.
@@ -116,7 +119,7 @@ wp revisions clean [<keep>] [--post_type=<post-type>] [--after-date=<yyyy-mm-dd>
 Generate revisions
 
 ~~~
-wp revisions generate [<count>] [--post_type=<post-type>] [--post_id=<post-id>]
+wp revisions generate [<count>] [--post_type=<post-type>] [--post_id=<post-id>] [--oldest_date=<oldest-date>]
 ~~~
 
 **OPTIONS**
@@ -129,6 +132,9 @@ wp revisions generate [<count>] [--post_type=<post-type>] [--post_id=<post-id>]
 
 	[--post_id=<post-id>]
 		Generate revisions for given post.
+
+	[--oldest_date=<oldest-date>]
+		Oldest date for revisions. Default: 5 years ago
 
 **EXAMPLES**
 
@@ -154,11 +160,19 @@ wp revisions status
 
 ## Installing
 
-Installing this package requires WP-CLI v2.1 or greater. Update to the latest stable release with `wp cli update`.
+Installing this package requires WP-CLI v2.12 or greater. Update to the latest stable release with `wp cli update`.
 
-Once you've done so, you can install this package with:
+Once you've done so, you can install the latest stable version of this package with:
 
-    wp package install git@github.com:trepmal/wp-revisions-cli.git
+```bash
+wp package install trepmal/wp-revisions-cli:@stable
+```
+
+To install the latest development version of this package, use the following command instead:
+
+```bash
+wp package install trepmal/wp-revisions-cli:dev-master
+```
 
 ## Contributing
 
@@ -184,7 +198,7 @@ Once you've decided to commit the time to seeing your pull request through, [ple
 
 ## Support
 
-Github issues aren't for general support questions, but there are other venues you can try: https://wp-cli.org/#support
+GitHub issues aren't for general support questions, but there are other venues you can try: https://wp-cli.org/#support
 
 
 *This README.md is generated dynamically from the project's codebase using `wp scaffold package-readme` ([doc](https://github.com/wp-cli/scaffold-package-command#wp-scaffold-package-readme)). To suggest changes, please submit a pull request against the corresponding part of the codebase.*

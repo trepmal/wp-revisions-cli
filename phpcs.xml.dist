@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <ruleset name="WP-CLI-PROJECT-NAME">
-<description>Custom ruleset for WP-CLI PROJECT NAME</description>
+<description>Custom ruleset for WP Revisions CLI</description>
 
     <!-- What to scan. -->
     <file>.</file>
@@ -20,5 +20,13 @@
 
     <!-- Rules: Include the base ruleset for WP-CLI projects. -->
     <rule ref="WP_CLI_CS"/>
+
+    <rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+        <properties>
+            <property name="prefixes" type="array">
+                <element value="Revisions"/>
+            </property>
+        </properties>
+    </rule>
 
 </ruleset>

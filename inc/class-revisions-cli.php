@@ -115,7 +115,7 @@ class Revisions_CLI extends WP_CLI_Command {
 				// get revisions of those IDs.
 				$revs = $wpdb->get_results(
 					// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- IN statement
-					"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent DESC"
+					"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent IN ({$post__in}) ORDER BY post_parent, post_date, ID DESC"
 				);
 			} else {
 				$revs = [];
@@ -123,7 +123,7 @@ class Revisions_CLI extends WP_CLI_Command {
 		} else {
 
 			$revs = $wpdb->get_results(
-				"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent DESC"
+				"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' ORDER BY post_parent, post_date, ID DESC"
 			);
 
 		}
@@ -176,10 +176,10 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * : Clean revisions for given post type(s). Default: any
 	 *
 	 * [--after-date=<yyyy-mm-dd>]
-	 * : Clean revisions on posts published on or after this date. Default: none.
+	 * : Clean revisions on posts published on or after this date (GMT). Default: none.
 	 *
 	 * [--before-date=<yyyy-mm-dd>]
-	 * : Clean revisions on posts published on or before this date. Default: none.
+	 * : Clean revisions on posts published before this date (GMT). Default: none.
 	 *
 	 * [--post_id=<post-id>]
 	 * : Clean revisions for given post.
@@ -213,8 +213,8 @@ class Revisions_CLI extends WP_CLI_Command {
 		$filter_keep = WP_CLI\Utils\get_flag_value( $assoc_args, 'filter-keep', false );
 		$post_type   = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_type', false );
 		$post_id     = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_id', false );
-		$after_date  = WP_CLI\Utils\get_flag_value( $assoc_args, 'after_date', false );
-		$before_date = WP_CLI\Utils\get_flag_value( $assoc_args, 'before_date', false );
+		$after_date  = WP_CLI\Utils\get_flag_value( $assoc_args, 'after-date', false );
+		$before_date = WP_CLI\Utils\get_flag_value( $assoc_args, 'before-date', false );
 		$hard        = WP_CLI\Utils\get_flag_value( $assoc_args, 'hard', false );
 		$dry_run     = WP_CLI\Utils\get_flag_value( $assoc_args, 'dry-run', false );
 
@@ -247,8 +247,9 @@ class Revisions_CLI extends WP_CLI_Command {
 				$strto_aft = $after_date ? strtotime( $after_date ) : false;
 				$strto_bef = $before_date ? strtotime( $before_date ) : false;
 
-				$after_ymd  = $strto_aft ? date( 'Y-m-d', $strto_aft ) : false;
-				$before_ymd = $strto_bef ? date( 'Y-m-d', $strto_bef ) : false;
+				// use wp_date to get local time, since we query against post_date column
+				$after_ymd  = $strto_aft ? wp_date( 'Y-m-d', $strto_aft ) : false;
+				$before_ymd = $strto_bef ? wp_date( 'Y-m-d', $strto_bef ) : false;
 
 				if ( $after_ymd && $before_ymd ) {
 					$where .= $wpdb->prepare( ' AND (post_date < %s AND post_date > %s)', $before_ymd, $after_ymd );
@@ -368,6 +369,9 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * [--post_id=<post-id>]
 	 * : Generate revisions for given post.
 	 *
+	 * [--oldest_date=<oldest-date>]
+	 * : Oldest date for revisions. Default: 5 years ago
+	 *
 	 * ## EXAMPLES
 	 *
 	 *     wp revisions generate 10
@@ -379,8 +383,17 @@ class Revisions_CLI extends WP_CLI_Command {
 		$count = WP_CLI\Utils\get_flag_value( $args, 0, 15 );
 		$count = absint( $count );
 
-		$post_id   = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_id', false );
-		$post_type = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_type', false );
+		$post_id     = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_id', false );
+		$post_type   = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_type', false );
+		$oldest_date = WP_CLI\Utils\get_flag_value( $assoc_args, 'oldest_date', '5 years ago' );
+
+		$oldest_date_time = strtotime( $oldest_date );
+		if ( false === $oldest_date_time ) {
+			WP_CLI::error( 'oldest_date value invalid' );
+		}
+
+		// distribute revisions between oldest date and current time
+		$interval = round( ( time() - $oldest_date_time ) / $count );
 
 		global $wpdb;
 
@@ -415,12 +428,28 @@ class Revisions_CLI extends WP_CLI_Command {
 		$this->start_bulk_operation();
 
 		remove_all_filters( 'wp_revisions_to_keep' );
+		remove_all_filters( 'wp_insert_post_data' );
 		add_filter( 'wp_save_post_revision_check_for_changes', '__return_false' );
+
 		$inc = 0;
 		foreach ( $posts as $post_id ) {
 			$notify->tick();
 
 			for ( $i = 0; $i < $count; $i++ ) {
+
+				$time = $oldest_date_time + ( $interval * $i );
+
+				add_filter(
+					'wp_insert_post_data',
+					function ( $data ) use ( $time ) {
+						$data['post_date_gmt']     = gmdate( 'Y-m-d H:i:s', $time );
+						$data['post_date']         = wp_date( 'Y-m-d H:i:s', $time );
+						$data['post_modified_gmt'] = gmdate( 'Y-m-d H:i:s', $time );
+						$data['post_modified']     = wp_date( 'Y-m-d H:i:s', $time );
+						return $data;
+					},
+					10
+				);
 
 				wp_save_post_revision( $post_id );
 			}

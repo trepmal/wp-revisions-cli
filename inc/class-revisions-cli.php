@@ -176,10 +176,10 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * : Clean revisions for given post type(s). Default: any
 	 *
 	 * [--after-date=<yyyy-mm-dd>]
-	 * : Clean revisions on posts published on or after this date. Default: none.
+	 * : Clean revisions on posts published on or after this date (GMT). Default: none.
 	 *
 	 * [--before-date=<yyyy-mm-dd>]
-	 * : Clean revisions on posts published on or before this date. Default: none.
+	 * : Clean revisions on posts published before this date (GMT). Default: none.
 	 *
 	 * [--post_id=<post-id>]
 	 * : Clean revisions for given post.
@@ -247,8 +247,9 @@ class Revisions_CLI extends WP_CLI_Command {
 				$strto_aft = $after_date ? strtotime( $after_date ) : false;
 				$strto_bef = $before_date ? strtotime( $before_date ) : false;
 
-				$after_ymd  = $strto_aft ? date( 'Y-m-d', $strto_aft ) : false;
-				$before_ymd = $strto_bef ? date( 'Y-m-d', $strto_bef ) : false;
+				// use wp_date to get local time, since we query against post_date column
+				$after_ymd  = $strto_aft ? wp_date( 'Y-m-d', $strto_aft ) : false;
+				$before_ymd = $strto_bef ? wp_date( 'Y-m-d', $strto_bef ) : false;
 
 				if ( $after_ymd && $before_ymd ) {
 					$where .= $wpdb->prepare( ' AND (post_date < %s AND post_date > %s)', $before_ymd, $after_ymd );

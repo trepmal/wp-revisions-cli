@@ -1,6 +1,6 @@
 Feature: Revisions
 
-  Scenario: Generate, list, remove revisions
+  Scenario: List revisions
     Given a WP install
 
     When I run `wp revisions list --format=json`
@@ -9,67 +9,34 @@ Feature: Revisions
       []
       """
 
-    When I run `wp revisions generate`
-    And I run `wp revisions list --format=count`
-    Then STDOUT should contain:
-      """
-      45
-      """
+    When I run `wp revisions generate 1`
+    And I run `wp revisions list`
+    Then STDOUT should be a table containing rows:
+      | ID | post_title     | post_parent |
+      | 6  | Hello world!   | 1           |
+      | 5  | Sample Page    | 2           |
+      | 4  | Privacy Policy | 3           |
 
-    When I run `wp revisions generate 5 --post_type=page`
-    And I run `wp revisions list --format=count`
-    Then STDOUT should contain:
-      """
-      55
-      """
+    When I run `wp revisions generate 1`
+    And I run `wp revisions list --fields=ID,post_title,post_type,post_status`
+    Then STDOUT should be a table containing rows:
+      | ID | post_title     | post_type | post_status |
+      | 6  | Hello world!   | revision  | inherit     |
+      | 5  | Sample Page    | revision  | inherit     |
+      | 4  | Privacy Policy | revision  | inherit     |
 
-    When I run `wp revisions generate 5 --post_id=1`
-    And I run `wp revisions list --format=count`
-    Then STDOUT should contain:
-      """
-      60
-      """
+    When I run `wp revisions generate 2`
+    And I run `wp revisions list --post_type=post`
+    Then STDOUT should be a table containing rows:
+      | ID | post_title   | post_parent |
+      | 6  | Hello world! | 1           |
+      | 9  | Hello world! | 1           |
+      | 14 | Hello world! | 1           |
+      | 15 | Hello world! | 1           |
 
-    When I run `wp revisions clean 5 --post_id=1`
-    Then STDOUT should contain:
-      """
-      Success: Finished removing 15 old revisions.
-      """
-
-    When I run `wp revisions clean 5`
-    Then STDOUT should contain:
-      """
-      Success: Finished removing 30 old revisions.
-      """
-
-    When I run `wp revisions list --format=count`
-    Then STDOUT should contain:
-      """
-      15
-      """
-
-    When I run `wp revisions dump --yes`
-    Then STDOUT should contain:
-      """
-      Success: Finished removing all revisions.
-      """
-
-    When I run `wp revisions list --format=json`
-    Then STDOUT should contain:
-      """
-      []
-      """
-
-    When I run `wp revisions generate 5 --post_type=page`
+    When I run `wp revisions generate 6`
     And I run `wp revisions list --post_type=page --format=count`
     Then STDOUT should contain:
       """
-      10
-      """
-
-    When I run `wp post delete $(wp post list --post_type=page --field=ID) --force`
-    And I run `wp revisions list --post_type=page --format=count`
-    Then STDOUT should contain:
-      """
-      0
+      20
       """

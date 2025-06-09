@@ -84,23 +84,26 @@ class Revisions_CLI extends WP_CLI_Command {
 	 */
 	public function list_( $args = array(), $assoc_args = array() ) {
 
+		$post_type = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_type', false );
+		$post_id   = WP_CLI\Utils\get_flag_value( $assoc_args, 'post_id', false );
+
 		global $wpdb;
-		if ( ! empty( $assoc_args['post_id'] ) ) {
+		if ( $post_id ) {
 
 			$revs = $wpdb->get_results(
 				$wpdb->prepare(
 					"SELECT * FROM $wpdb->posts WHERE post_type = 'revision' AND post_parent = %d",
-					$assoc_args['post_id']
+					$post_id
 				)
 			);
 
-		} elseif ( ! empty( $assoc_args['post_type'] ) ) {
+		} elseif ( $post_type ) {
 
 			$post_types = array_map(
 				function ( $i ) {
 					return sprintf( "'%s'", esc_sql( $i ) );
 				},
-				wp_parse_slug_list( $assoc_args['post_type'] )
+				wp_parse_slug_list( $post_type )
 			);
 			$where      = sprintf( 'AND post_type IN ( %s )', implode( ',', $post_types ) );
 			// get all IDs for posts in given post type(s).

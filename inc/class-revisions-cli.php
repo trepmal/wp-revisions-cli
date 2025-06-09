@@ -16,7 +16,7 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * ## OPTIONS
 	 *
 	 * [--hard]
-	 * : Hard delete. Slower, uses wp_delete_post_revision(). Alias to `wp revisions clean -1`
+	 * : Hard delete. Slower, uses wp_delete_post_revision() to handle additional meta, caches, or other actions. Alias to `wp revisions clean -1 --hard`
 	 *
 	 * [--yes]
 	 * : Answer yes to the confirmation message.
@@ -143,7 +143,7 @@ class Revisions_CLI extends WP_CLI_Command {
 	}
 
 	/**
-	 * Get revision status
+	 * Get WP_POST_REVISIONS value
 	 *
 	 * ## OPTIONS
 	 *
@@ -188,7 +188,7 @@ class Revisions_CLI extends WP_CLI_Command {
 	 * : Clean revisions for given post.
 	 *
 	 * [--hard]
-	 * : Hard delete. Slower, uses wp_delete_post_revision().
+	 * : Hard delete. Slower, uses wp_delete_post_revision() to handle additional meta, caches, or other actions.
 	 *
 	 * [--dry-run]
 	 * : Dry run, just a test, no actual cleaning done.

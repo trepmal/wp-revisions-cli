@@ -58,7 +58,7 @@ wp revisions dump [--hard] [--yes]
 **OPTIONS**
 
 	[--hard]
-		Hard delete. Slower, uses wp_delete_post_revision(). Alias to `wp revisions clean -1`
+		Hard delete. Slower, uses wp_delete_post_revision() to handle additional meta, caches, or other actions. Alias to `wp revisions clean -1 --hard`
 
 	[--yes]
 		Answer yes to the confirmation message.
@@ -98,7 +98,7 @@ wp revisions clean [<keep>] [--filter-keep] [--post_type=<post-type>] [--after-d
 		Clean revisions for given post.
 
 	[--hard]
-		Hard delete. Slower, uses wp_delete_post_revision().
+		Hard delete. Slower, uses wp_delete_post_revision() to handle additional meta, caches, or other actions.
 
 	[--dry-run]
 		Dry run, just a test, no actual cleaning done.
@@ -146,7 +146,7 @@ wp revisions generate [<count>] [--post_type=<post-type>] [--post_id=<post-id>] 
 
 ### wp revisions status
 
-Get revision status
+Get WP_POST_REVISIONS value
 
 ~~~
 wp revisions status 

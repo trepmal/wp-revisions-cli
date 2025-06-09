@@ -293,6 +293,13 @@ class Revisions_CLI extends WP_CLI_Command {
 		$this->start_bulk_operation();
 
 		foreach ( $posts as $post_id ) {
+			if ( $filter_keep ) {
+				$keep = wp_revisions_to_keep( get_post( $post_id ) );
+				if ( -1 === intval( $keep ) ) {
+					$notify->tick();
+					continue;
+				}
+			}
 
 			// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.get_posts_get_children
 			$revisions = get_children(
@@ -312,10 +319,6 @@ class Revisions_CLI extends WP_CLI_Command {
 			if ( ! $revisions ) {
 				$notify->tick();
 				continue;
-			}
-
-			if ( $filter_keep ) {
-				$keep = wp_revisions_to_keep( get_post( $post_id ) );
 			}
 
 			$count = count( $revisions );

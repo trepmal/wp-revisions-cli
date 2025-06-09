@@ -292,24 +292,23 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		$this->start_bulk_operation();
 
+		$inc = 0;
 		foreach ( $posts as $post_id ) {
 			if ( $filter_keep ) {
 				$keep = wp_revisions_to_keep( get_post( $post_id ) );
+				++$inc;
+				if ( 0 === $inc % 10 ) {
+					$this->stop_the_insanity();
+				}
 				if ( -1 === intval( $keep ) ) {
 					$notify->tick();
 					continue;
 				}
 			}
 
-			// phpcs:ignore WordPressVIPMinimum.Functions.RestrictedFunctions.get_posts_get_children
-			$revisions = get_children(
+			$revisions = wp_get_post_revisions(
+				$post_id,
 				array(
-					'order'                  => 'DESC',
-					'orderby'                => 'date ID',
-					'post_parent'            => $post_id,
-					'post_type'              => 'revision',
-					'post_status'            => 'inherit',
-					// trust me on these.
 					'update_post_meta_cache' => false,
 					'update_post_term_cache' => false,
 					'fields'                 => 'ids',
@@ -432,11 +431,6 @@ class Revisions_CLI extends WP_CLI_Command {
 		$notify = \WP_CLI\Utils\make_progress_bar( sprintf( 'Generating revisions for %d post(s)', $total ), $total );
 
 		$this->start_bulk_operation();
-		if ( ! defined( 'WP_INSTALLING' ) ) {
-			// Prevent unneeded cache-adds in some object cache implementations
-			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound
-			define( 'WP_INSTALLING', true );
-		}
 
 		remove_all_filters( 'wp_revisions_to_keep' );
 		remove_all_filters( 'wp_insert_post_data' );
@@ -523,6 +517,11 @@ class Revisions_CLI extends WP_CLI_Command {
 	protected function start_bulk_operation() {
 		// Disable term count updates for speed
 		wp_defer_term_counting( true );
+		if ( ! defined( 'WP_INSTALLING' ) ) {
+			// Prevent unneeded cache-adds in some object cache implementations
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound
+			define( 'WP_INSTALLING', true );
+		}
 	}
 
 	/**

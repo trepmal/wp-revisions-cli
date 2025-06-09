@@ -429,6 +429,11 @@ class Revisions_CLI extends WP_CLI_Command {
 		$notify = \WP_CLI\Utils\make_progress_bar( sprintf( 'Generating revisions for %d post(s)', $total ), $total );
 
 		$this->start_bulk_operation();
+		if ( ! defined( 'WP_INSTALLING' ) ) {
+			// Prevent unneeded cache-adds in some object cache implementations
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound
+			define( 'WP_INSTALLING', true );
+		}
 
 		remove_all_filters( 'wp_revisions_to_keep' );
 		remove_all_filters( 'wp_insert_post_data' );
@@ -438,23 +443,22 @@ class Revisions_CLI extends WP_CLI_Command {
 		foreach ( $posts as $post_id ) {
 			$notify->tick();
 
+			$post = get_post( $post_id );
+
 			for ( $i = 0; $i < $count; $i++ ) {
 
 				$time = $oldest_date_time + ( $interval * $i );
 
-				add_filter(
-					'wp_insert_post_data',
-					function ( $data ) use ( $time ) {
-						$data['post_date_gmt']     = gmdate( 'Y-m-d H:i:s', $time );
-						$data['post_date']         = wp_date( 'Y-m-d H:i:s', $time );
-						$data['post_modified_gmt'] = gmdate( 'Y-m-d H:i:s', $time );
-						$data['post_modified']     = wp_date( 'Y-m-d H:i:s', $time );
-						return $data;
-					},
-					10
-				);
+				$post->post_date_gmt     = gmdate( 'Y-m-d H:i:s', $time );
+				$post->post_date         = wp_date( 'Y-m-d H:i:s', $time );
+				$post->post_modified_gmt = gmdate( 'Y-m-d H:i:s', $time );
+				$post->post_modified     = wp_date( 'Y-m-d H:i:s', $time );
 
-				wp_save_post_revision( $post_id );
+				/*
+				 * Because we are generating, skip the overhead that comes
+				 * with wp_save_post_revision( $post_id );
+				 */
+				_wp_put_post_revision( $post );
 			}
 			++$inc;
 			if ( 0 === $inc % 10 ) {

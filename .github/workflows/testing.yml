@@ -17,3 +17,7 @@ jobs:
     with:
       minimum-php: '7.1'
       minimum-wp: '6.1'
+    strategy:
+      matrix:
+        exclude:
+          - coverage: true

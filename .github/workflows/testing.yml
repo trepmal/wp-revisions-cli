@@ -13,11 +13,8 @@ on:
 
 jobs:
   test:
-    uses: wp-cli/.github/.github/workflows/reusable-testing.yml@main
+    uses: trepmal/.github-test/.github/workflows/reusable-testing.yml@add/coverage-input
     with:
       minimum-php: '7.1'
       minimum-wp: '6.1'
-    strategy:
-      matrix:
-        exclude:
-          - coverage: true
+      with-coverage: false

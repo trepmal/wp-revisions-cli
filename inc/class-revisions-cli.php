@@ -286,7 +286,14 @@ class Revisions_CLI extends WP_CLI_Command {
 
 		$total = count( $posts );
 
-		$notify = \WP_CLI\Utils\make_progress_bar( sprintf( 'Cleaning revisions for %d post(s)', $total ), $total );
+		$notify = \WP_CLI\Utils\make_progress_bar(
+			sprintf(
+				'%sCleaning revisions for %d post(s)',
+				$dry_run ? '[DRY RUN] ' : '',
+				$total
+			),
+			$total
+		);
 
 		$total_deleted = 0;
 

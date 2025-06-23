@@ -500,21 +500,39 @@ class Revisions_CLI extends WP_CLI_Command {
 	 *  Clear all of the caches for memory management
 	 */
 	protected function stop_the_insanity() {
-		global $wpdb, $wp_object_cache;
+		global $wp_object_cache;
 
-		$wpdb->queries = array();
+		// Reset query cache.
+		if ( function_exists( 'vip_reset_db_query_log' ) ) {
+			vip_reset_db_query_log();
+		} else {
+			global $wpdb;
 
-		if ( ! is_object( $wp_object_cache ) ) {
-			return;
+			$wpdb->queries = [];
 		}
 
-		$wp_object_cache->group_ops      = array();
-		$wp_object_cache->stats          = array();
-		$wp_object_cache->memcache_debug = array();
-		$wp_object_cache->cache          = array();
+		// Reset object cache.
+		if ( function_exists( 'vip_reset_local_object_cache' ) ) {
+			vip_reset_local_object_cache();
+		} elseif ( $wp_object_cache instanceof \RedisCachePro\ObjectCaches\ObjectCacheInterface && method_exists( $wp_object_cache, 'flush_runtime' ) ) { // @phpstan-ignore-line
+			$wp_object_cache->flush_runtime(); // @phpstan-ignore-line
+		} elseif ( is_object( $wp_object_cache ) ) {
 
-		if ( is_callable( $wp_object_cache, '__remoteset' ) ) {
-			$wp_object_cache->__remoteset(); // important
+			if ( isset( $wp_object_cache->group_ops ) ) {
+				$wp_object_cache->group_ops = [];
+			}
+
+			if ( isset( $wp_object_cache->memcache_debug ) ) {
+				$wp_object_cache->memcache_debug = [];
+			}
+
+			if ( isset( $wp_object_cache->cache ) ) {
+				$wp_object_cache->cache = [];
+			}
+
+			if ( method_exists( $wp_object_cache, '__remoteset' ) ) {
+				$wp_object_cache->__remoteset();
+			}
 		}
 	}
 
